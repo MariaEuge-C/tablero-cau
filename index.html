@@ -280,7 +280,7 @@ function bOk(v, l) {
   var cls = v >= 100 ? 'b-ok' : v >= 80 ? 'b-warn' : 'b-no';
   return '<span class="badge ' + cls + '">' + l + ' ' + v + '%</span>';
 }
-function totalCalc(c) { return c.rn_ri + c.r1c_ri + c.ni_aranc_fact; }
+function totalCalc(c) { return c.rn_ri + c.ni_aranc_fact; }
 function totalFinal(c) { return c.total_manual !== null ? c.total_manual : totalCalc(c); }
 
 function setFecha() {
@@ -359,7 +359,7 @@ function renderGlobalKPI() {
     kpi('kpi-md','Cumpl. RI Neta',rp+'%','') +
     kpi('kpi-dk','RI 1a Cohorte',r1c_ri,'obj '+r1c_obj) +
     kpi('kpi-md','Cumpl. 1C',r1p+'%','') +
-    kpi('kpi-pale','Total Alumnos RI',rn_ri+r1c_ri,'') +
+    kpi('kpi-pale','Total Alumnos RI',rn_ri,'') +
     kpi('kpi-mint','Total General',tot,'') +
     '</div>';
   return '<div class="kpi-strip">' +
@@ -420,7 +420,7 @@ function fieldCalc(label, val) {
 function totalBarHtml(c, i) {
   var calc = totalCalc(c), fin = totalFinal(c), id = 'tv_' + i;
   return '<div class="total-box">' +
-    '<span class="tl"><i class="ti ti-users" style="font-size:14px;margin-right:6px"></i>Total Alumnos (NI + RI Neta + 1C)</span>' +
+    '<span class="tl"><i class="ti ti-users" style="font-size:14px;margin-right:6px"></i>Total Alumnos (RI Neta + NI)</span>' +
     '<div class="tv-wrap">' +
       '<div class="tv" id="' + id + '">' + fin + '</div>' +
       '<div class="total-adj">' +
