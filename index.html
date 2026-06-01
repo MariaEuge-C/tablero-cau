@@ -69,7 +69,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .cbody{border-top:1px solid var(--g100);padding:18px 20px;display:none;background:#FAFCFB}
 .cbody.open{display:block}
 .sec-head{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;margin-bottom:12px;padding-bottom:6px;color:var(--g700);border-bottom:2px solid var(--g300);display:flex;align-items:center;gap:6px}
-.fgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:12px}
+.fgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;margin-bottom:12px}
 .fr{display:flex;flex-direction:column;gap:3px;background:white;border-radius:var(--r-sm);padding:10px 12px;border:1px solid var(--border)}
 .fr label{font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.05em}
 .fv{font-size:20px;font-weight:700;color:var(--text);font-family:'DM Mono',monospace}
@@ -108,6 +108,22 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .info-banner{background:var(--amber-l);border:1px solid #FAC775;border-radius:var(--r-sm);padding:10px 14px;font-size:12px;color:#854F0B;font-weight:600;margin-bottom:14px;display:flex;align-items:center;gap:8px}
 .bsave{padding:9px 22px;background:var(--g700);color:white;border:none;border-radius:var(--r-sm);font-size:13px;cursor:pointer;font-family:'DM Sans',sans-serif;margin-top:14px;font-weight:700}
 .bsave:hover{background:var(--g600)}
+
+/* RANKING */
+.ranking-wrap{background:white;border-radius:var(--r);border:1px solid var(--border);box-shadow:var(--shadow);overflow:hidden;margin-top:16px}
+.ranking-head{background:linear-gradient(135deg,var(--g800),var(--g700));padding:14px 20px;display:flex;align-items:center;gap:10px}
+.ranking-head span{font-size:14px;font-weight:700;color:var(--g200);text-transform:uppercase;letter-spacing:.05em}
+.ranking-item{display:flex;align-items:center;gap:14px;padding:12px 20px;border-bottom:1px solid var(--g50);transition:background .1s}
+.ranking-item:last-child{border-bottom:none}
+.ranking-item:hover{background:var(--g50)}
+.rank-pos{font-size:16px;font-weight:700;color:var(--g700);width:28px;text-align:center;font-family:'DM Mono',monospace}
+.rank-pos.gold{color:#B8860B}.rank-pos.silver{color:#707070}.rank-pos.bronze{color:#8B4513}
+.rank-name{flex:1;font-size:14px;font-weight:600;color:var(--text)}
+.rank-val{font-size:18px;font-weight:700;color:var(--g700);font-family:'DM Mono',monospace}
+.rank-bar-wrap{width:120px}
+.rank-bar{height:6px;background:var(--g100);border-radius:3px;overflow:hidden}
+.rank-bar-fill{height:100%;background:linear-gradient(90deg,var(--g500),var(--g400));border-radius:3px}
+.rank-empty{padding:24px;text-align:center;color:var(--text3);font-size:13px}
 </style>
 </head>
 <body>
@@ -131,10 +147,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
     </button>
   </div>
   <div id="main-content">
-    <div class="loading">
-      <div class="spin"><i class="ti ti-refresh"></i></div>
-      <p style="margin-top:12px;font-weight:600;color:var(--g700)">Cargando datos...</p>
-    </div>
+    <div class="loading"><div class="spin"><i class="ti ti-refresh"></i></div>
+    <p style="margin-top:12px;font-weight:600;color:var(--g700)">Cargando datos...</p></div>
   </div>
   <div class="toast" id="toast"></div>
   <div id="lock-panel" style="display:none">
@@ -143,11 +157,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
       <h3>Acceso de administrador</h3>
       <p>Ingresá la contraseña para acceder al modo edición</p>
       <div class="lock-row">
-        <input class="lpwd" type="password" id="pwd-inp" placeholder="Contraseña"
-               onkeydown="if(event.key==='Enter')tryUnlock()">
-        <button class="bunlock" onclick="tryUnlock()">
-          <i class="ti ti-lock-open" style="font-size:14px;margin-right:5px"></i>Ingresar
-        </button>
+        <input class="lpwd" type="password" id="pwd-inp" placeholder="Contraseña" onkeydown="if(event.key==='Enter')tryUnlock()">
+        <button class="bunlock" onclick="tryUnlock()"><i class="ti ti-lock-open" style="font-size:14px;margin-right:5px"></i>Ingresar</button>
       </div>
       <div class="lock-err" id="pwd-err">Contraseña incorrecta</div>
       <div><button class="bcancel" onclick="closeLock()">Cancelar</button></div>
@@ -157,34 +168,36 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 
 <script>
 var CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSf0mk3M-KhA7XG5Vyc9YCmHKDLoV2vgTUhh5Yt-NiyNw7qxrp9cocN8TciP2TeuGgKHDkUyrqG7hil/pub?gid=0&single=true&output=csv';
+var CSV_RANKING_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSf0mk3M-KhA7XG5Vyc9YCmHKDLoV2vgTUhh5Yt-NiyNw7qxrp9cocN8TciP2TeuGgKHDkUyrqG7hil/pub?gid=1&single=true&output=csv';
 var PWD = 'Cau2026-';
 
 var CAUS_BASE = [
-  {code:'BLN01',nombre:'Balnearia'},
-  {code:'BZR01',nombre:'Burzaco'},
-  {code:'CEJ01',nombre:'Cruz del Eje'},
-  {code:'DFU01',nombre:'Dean Funes'},
-  {code:'FRA03',nombre:'San Francisco'},
-  {code:'JMA01',nombre:'Jesus Maria'},
-  {code:'MOR03',nombre:'Morteros'},
-  {code:'SLU02',nombre:'Villa Mercedes'}
+  {code:'BLN01',nombre:'Balnearia'},{code:'BZR01',nombre:'Burzaco'},
+  {code:'CEJ01',nombre:'Cruz del Eje'},{code:'DFU01',nombre:'Dean Funes'},
+  {code:'FRA03',nombre:'San Francisco'},{code:'JMA01',nombre:'Jesus Maria'},
+  {code:'MOR03',nombre:'Morteros'},{code:'SLU02',nombre:'Villa Mercedes'}
 ];
 
 function emptyCAU(code, nombre) {
   return {
     code:code, nombre:nombre,
-    rn_aranc_ant:0, rn_aranc_gen:0, rn_ri:0, rn_obj:0, rn_fin:0,
-    rn_pases_env:0, rn_pases_rec:0, rn_rec:0, rn_pers:0,
-    r1c_ins_ant:0, r1c_aranc_gen:0, r1c_ri:0, r1c_obj:0,
-    r1c_pases_env:0, r1c_pases_rec:0, r1c_pers:0,
-    ni_mat_ant:0, ni_mat_fact:0, ni_aranc_ant:0, ni_aranc_fact:0,
-    ni_obj:0, ni_pers:0, total_manual:null
+    rn_aranc_ant:0,rn_aranc_gen:0,rn_ri:0,rn_fin:0,
+    rn_pases_env:0,rn_pases_rec:0,rn_rec:0,rn_pers:0,
+    r1c_ins_ant:0,r1c_aranc_gen:0,r1c_ri:0,
+    r1c_pases_env:0,r1c_pases_rec:0,r1c_pers:0,
+    ni_mat_ant:0,ni_mat_fact:0,ni_aranc_ant:0,ni_aranc_fact:0,
+    ni_obj:0,ni_pers:0,
+    ni_call:0,ni_conv_lead:0,ni_obj_lead:0,ni_cumpl_lead:0,
+    alumnos_ed:0, alumnos_edh:0, comision_pers:0,
+    sa_cma:0, sa_aprobado:0, sa_regular:0, sa_lib_nota:0, sa_libre:0, sa_cursando:0,
+    total_manual:null
   };
 }
 
 var DATA = CAUS_BASE.map(function(c){ return emptyCAU(c.code, c.nombre); });
+var RANKING = [];
 var isAdmin = false;
-var nav = 'sig';
+var nav = 'general';
 var filtro = 'global';
 var csvLoaded = false;
 
@@ -214,12 +227,22 @@ function parseCSV(text) {
   return result;
 }
 
+function parseRankingCSV(text) {
+  var lines = text.split('\n').filter(function(l){ return l.trim(); });
+  if (lines.length < 2) return [];
+  var sep = (lines[0].indexOf('\t') > -1) ? '\t' : ',';
+  var result = [];
+  for (var i = 1; i < lines.length; i++) {
+    var vals = lines[i].split(sep).map(function(v){ return v.trim().replace(/\r/g,'').replace(/"/g,''); });
+    if (vals[0]) result.push({ nombre: vals[0], ni: parseNum(vals[1]) });
+  }
+  result.sort(function(a,b){ return b.ni - a.ni; });
+  return result;
+}
+
 function loadCSV() {
   fetch(CSV_URL)
-    .then(function(r) {
-      if (!r.ok) throw new Error('HTTP ' + r.status);
-      return r.text();
-    })
+    .then(function(r){ if(!r.ok) throw new Error('fail'); return r.text(); })
     .then(function(text) {
       var rows = parseCSV(text);
       rows.forEach(function(row) {
@@ -227,364 +250,564 @@ function loadCSV() {
         if (!rawCode) return;
         var normCode = (rawCode === 'BRZ01') ? 'BZR01' : rawCode;
         var idx = -1;
-        for (var i = 0; i < DATA.length; i++) {
-          if (DATA[i].code === normCode) { idx = i; break; }
-        }
+        for (var i = 0; i < DATA.length; i++) { if (DATA[i].code === normCode) { idx = i; break; } }
         var nombre = (row.nombre || '').trim();
         if (!nombre && idx >= 0) nombre = DATA[idx].nombre;
         var entry = {
-          code: normCode,
-          nombre: nombre || normCode,
-          rn_aranc_ant:  parseNum(row.rn_aranc_ant),
-          rn_aranc_gen:  parseNum(row.rn_aranc_gen),
-          rn_ri:         parseNum(row.rn_ri),
-          rn_obj:        parseNum(row.rn_obj),
-          rn_fin:        parseNum(row.rn_fin),
-          rn_pases_env:  parseNum(row.rn_pases_env),
-          rn_pases_rec:  parseNum(row.rn_pases_rec),
-          rn_rec:        parseNum(row.rn_rec),
-          rn_pers:       parseNum(row.rn_pers),
-          r1c_ins_ant:   parseNum(row.r1c_ins_ant),
-          r1c_aranc_gen: parseNum(row.r1c_aranc_gen),
-          r1c_ri:        parseNum(row.r1c_ri),
-          r1c_obj:       parseNum(row.r1c_obj),
-          r1c_pases_env: parseNum(row.r1c_pases_env),
-          r1c_pases_rec: parseNum(row.r1c_pases_rec),
-          r1c_pers:      parseNum(row.r1c_pers),
-          ni_mat_ant:    parseNum(row.ni_mat_ant),
-          ni_mat_fact:   parseNum(row.ni_mat_fact),
-          ni_aranc_ant:  parseNum(row.ni_aranc_ant),
-          ni_aranc_fact: parseNum(row.ni_aranc_fact),
-          ni_obj:        parseNum(row.ni_obj),
-          ni_pers:       parseNum(row.ni_pers),
-          total_manual:  null
+          code:normCode, nombre:nombre||normCode,
+          rn_aranc_ant:parseNum(row.rn_aranc_ant), rn_aranc_gen:parseNum(row.rn_aranc_gen),
+          rn_ri:parseNum(row.rn_ri), rn_fin:parseNum(row.rn_fin),
+          rn_pases_env:parseNum(row.rn_pases_env), rn_pases_rec:parseNum(row.rn_pases_rec),
+          rn_rec:parseNum(row.rn_rec), rn_pers:parseNum(row.rn_pers),
+          r1c_ins_ant:parseNum(row.r1c_ins_ant), r1c_aranc_gen:parseNum(row.r1c_aranc_gen),
+          r1c_ri:parseNum(row.r1c_ri),
+          r1c_pases_env:parseNum(row.r1c_pases_env), r1c_pases_rec:parseNum(row.r1c_pases_rec),
+          r1c_pers:parseNum(row.r1c_pers),
+          ni_mat_ant:parseNum(row.ni_mat_ant), ni_mat_fact:parseNum(row.ni_mat_fact),
+          ni_aranc_ant:parseNum(row.ni_aranc_ant), ni_aranc_fact:parseNum(row.ni_aranc_fact),
+          ni_obj:parseNum(row.ni_obj), ni_pers:parseNum(row.ni_pers),
+          ni_call:parseNum(row.ni_call),
+          ni_conv_lead:parseNum(row.ni_conv_lead),
+          ni_obj_lead:parseNum(row.ni_obj_lead),
+          ni_cumpl_lead:parseNum(row.ni_cumpl_lead),
+          sa_tp1_pct:parseNum(row.sa_tp1_pct), sa_tp1_alerta:row.sa_tp1_alerta||'', sa_tp1_obj:parseNum(row.sa_tp1_obj), sa_tp1_cumpl:parseNum(row.sa_tp1_cumpl), sa_tp1_falt:parseNum(row.sa_tp1_falt),
+          sa_tp2_pct:parseNum(row.sa_tp2_pct), sa_tp2_alerta:row.sa_tp2_alerta||'', sa_tp2_obj:parseNum(row.sa_tp2_obj), sa_tp2_cumpl:parseNum(row.sa_tp2_cumpl), sa_tp2_falt:parseNum(row.sa_tp2_falt),
+          sa_tp3_pct:parseNum(row.sa_tp3_pct), sa_tp3_alerta:row.sa_tp3_alerta||'', sa_tp3_obj:parseNum(row.sa_tp3_obj), sa_tp3_cumpl:parseNum(row.sa_tp3_cumpl), sa_tp3_falt:parseNum(row.sa_tp3_falt),
+          sa_tp4_pct:parseNum(row.sa_tp4_pct), sa_tp4_alerta:row.sa_tp4_alerta||'', sa_tp4_obj:parseNum(row.sa_tp4_obj), sa_tp4_cumpl:parseNum(row.sa_tp4_cumpl), sa_tp4_falt:parseNum(row.sa_tp4_falt),
+          sa_rec_pct:parseNum(row.sa_rec_pct), sa_rec_alerta:row.sa_rec_alerta||'', sa_rec_obj:parseNum(row.sa_rec_obj), sa_rec_cumpl:parseNum(row.sa_rec_cumpl), sa_rec_falt:parseNum(row.sa_rec_falt),
+          sa_int_pct:parseNum(row.sa_int_pct), sa_int_alerta:row.sa_int_alerta||'', sa_int_obj:parseNum(row.sa_int_obj), sa_int_cumpl:parseNum(row.sa_int_cumpl), sa_int_falt:parseNum(row.sa_int_falt),
+          alumnos_ed:parseNum(row.alumnos_ed), alumnos_edh:parseNum(row.alumnos_edh), comision_pers:parseNum(row.comision_pers),
+          sa_cma:parseNum(row.sa_cma), sa_aprobado:parseNum(row.sa_aprobado), sa_regular:parseNum(row.sa_regular),
+          sa_lib_nota:parseNum(row.sa_lib_nota), sa_libre:parseNum(row.sa_libre), sa_cursando:parseNum(row.sa_cursando),
+          total_manual:null
         };
-        if (idx >= 0) DATA[idx] = entry;
-        else DATA.push(entry);
+        if (idx >= 0) DATA[idx] = entry; else DATA.push(entry);
       });
       csvLoaded = true;
-      renderNav();
-      renderMain();
+      renderNav(); renderMain();
     })
-    .catch(function(e) {
-      console.error('CSV error:', e);
-      csvLoaded = false;
-      renderNav();
-      renderMain();
-    });
+    .catch(function(){ csvLoaded = false; renderNav(); renderMain(); });
+
+  fetch(CSV_RANKING_URL)
+    .then(function(r){ if(!r.ok) throw new Error('fail'); return r.text(); })
+    .then(function(text){ RANKING = parseRankingCSV(text); })
+    .catch(function(){ RANKING = []; });
 }
 
-function pct(a, b) { return b ? Math.round(a / b * 1000) / 10 : 0; }
-function pclr(v) { return v >= 100 ? 'pf-v' : v >= 80 ? 'pf-n' : 'pf-r'; }
-function bOk(v, l) {
-  var cls = v >= 100 ? 'b-ok' : v >= 80 ? 'b-warn' : 'b-no';
-  return '<span class="badge ' + cls + '">' + l + ' ' + v + '%</span>';
-}
-function totalCalc(c) { return c.rn_ri + c.ni_aranc_fact; }
-function totalFinal(c) { return c.total_manual !== null ? c.total_manual : totalCalc(c); }
+function pct(a,b){ return b ? Math.round(a/b*1000)/10 : 0; }
+function pclr(v){ return v>=100?'pf-v':v>=80?'pf-n':'pf-r'; }
+function bOk(v,l){ var cls=v>=100?'b-ok':v>=80?'b-warn':'b-no'; return '<span class="badge '+cls+'">'+l+' '+v+'%</span>'; }
+function totalCalc(c){ return c.rn_ri + c.ni_aranc_fact; }
+function totalFinal(c){ return c.total_manual!==null ? c.total_manual : totalCalc(c); }
 
-function setFecha() {
-  var d = new Date();
-  var dias = ['Dom','Lun','Mar','Mie','Jue','Vie','Sab'];
-  var meses = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
-  document.getElementById('fecha').textContent =
-    dias[d.getDay()] + ' ' + d.getDate() + ' de ' + meses[d.getMonth()] + ' ' + d.getFullYear();
+function setFecha(){
+  var d=new Date();
+  var dias=['Dom','Lun','Mar','Mie','Jue','Vie','Sab'];
+  var meses=['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+  document.getElementById('fecha').textContent=dias[d.getDay()]+' '+d.getDate()+' de '+meses[d.getMonth()]+' '+d.getFullYear();
 }
+function showToast(msg){ var t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); setTimeout(function(){t.classList.remove('show');},2400); }
 
-function showToast(msg) {
-  var t = document.getElementById('toast');
-  t.textContent = msg;
-  t.classList.add('show');
-  setTimeout(function(){ t.classList.remove('show'); }, 2400);
-}
-
-function renderNav() {
-  var tabs = [
-    ['sig', '<i class="ti ti-list-check" style="margin-right:5px"></i>Seguimiento indicadores'],
-    ['ni',  '<i class="ti ti-user-plus" style="margin-right:5px"></i>Nuevos ingresantes']
+function renderNav(){
+  var tabs=[
+    ['general','<i class="ti ti-chart-bar" style="margin-right:5px"></i>Indicadores Generales'],
+    ['ni','<i class="ti ti-user-plus" style="margin-right:5px"></i>Nuevos Ingresantes'],
+    ['pers','<i class="ti ti-repeat" style="margin-right:5px"></i>Persistencia']
   ];
-  if (isAdmin) tabs.push(['cargar', '<i class="ti ti-edit" style="margin-right:5px"></i>Cargar datos']);
-  document.getElementById('sub-nav').innerHTML = tabs.map(function(t){
-    return '<button class="snb' + (nav === t[0] ? ' snb-on' : '') +
-           '" onclick="setNav(\'' + t[0] + '\')">' + t[1] + '</button>';
+  if(isAdmin) tabs.push(['cargar','<i class="ti ti-edit" style="margin-right:5px"></i>Cargar datos']);
+  document.getElementById('sub-nav').innerHTML=tabs.map(function(t){
+    return '<button class="snb'+(nav===t[0]?' snb-on':'')+'" onclick="setNav(\''+t[0]+'\')">'+t[1]+'</button>';
   }).join('');
 }
 
-function setNav(n) { nav = n; filtro = 'global'; renderNav(); renderMain(); }
-function setFiltro(f) { filtro = f; renderMain(); }
+function setNav(n){ nav=n; filtro='global'; renderNav(); renderMain(); }
+function setFiltro(f){ filtro=f; renderMain(); }
 
-function renderMain() {
-  var el = document.getElementById('main-content');
-  if (nav === 'cargar' && isAdmin) { el.innerHTML = renderCargar(); return; }
-  var html = '';
-  if (!csvLoaded) {
-    html += '<div class="info-banner"><i class="ti ti-alert-triangle"></i>' +
-            'No se pudo conectar con la planilla. El tablero debe estar publicado en un servidor (GitHub Pages / Netlify), no abierto como archivo local.</div>';
-  }
-  html += renderFilterBar();
-  if (filtro === 'global') {
-    html += renderGlobalKPI();
-    html += '<div class="clist">';
-    for (var i = 0; i < DATA.length; i++) html += renderCard(DATA[i], i);
-    html += '</div>';
-  } else {
-    var c = null;
-    for (var j = 0; j < DATA.length; j++) { if (DATA[j].code === filtro) { c = DATA[j]; break; } }
-    if (c) html += renderSingleKPI(c) + renderDetalle(c, j);
-  }
-  el.innerHTML = html;
-}
+function renderMain(){
+  var el=document.getElementById('main-content');
+  if(nav==='cargar'&&isAdmin){ el.innerHTML=renderCargar(); return; }
+  var html='';
+  if(!csvLoaded) html+='<div class="info-banner"><i class="ti ti-alert-triangle"></i>No se pudo conectar con la planilla.</div>';
 
-function renderFilterBar() {
-  var h = '<div class="filter-row"><span class="flabel"><i class="ti ti-filter" style="font-size:12px;margin-right:3px"></i>Ver:</span>';
-  h += '<button class="fb' + (filtro === 'global' ? ' fb-on' : '') + '" onclick="setFiltro(\'global\')">Global</button>';
-  for (var i = 0; i < DATA.length; i++) {
-    h += '<button class="fb' + (filtro === DATA[i].code ? ' fb-on' : '') +
-         '" onclick="setFiltro(\'' + DATA[i].code + '\')">' + DATA[i].code + '</button>';
-  }
-  return h + '</div>';
-}
-
-function renderGlobalKPI() {
-  var rn_ri=0,rn_obj=0,r1c_ri=0,r1c_obj=0,ni_f=0,ni_o=0,tot=0;
-  for (var i=0;i<DATA.length;i++) {
-    rn_ri+=DATA[i].rn_ri; rn_obj+=DATA[i].rn_obj;
-    r1c_ri+=DATA[i].r1c_ri; r1c_obj+=DATA[i].r1c_obj;
-    ni_f+=DATA[i].ni_aranc_fact; ni_o+=DATA[i].ni_obj;
-    tot+=totalFinal(DATA[i]);
-  }
-  var rp=pct(rn_ri,rn_obj), r1p=pct(r1c_ri,r1c_obj), nip=pct(ni_f,ni_o);
-  if (nav === 'sig') return '<div class="kpi-strip">' +
-    kpi('kpi-dk','RI Netos Total',rn_ri,'obj '+rn_obj) +
-    kpi('kpi-md','Cumpl. RI Neta',rp+'%','') +
-    kpi('kpi-dk','RI 1a Cohorte',r1c_ri,'obj '+r1c_obj) +
-    kpi('kpi-md','Cumpl. 1C',r1p+'%','') +
-    kpi('kpi-pale','Total Alumnos RI',rn_ri,'') +
-    kpi('kpi-mint','Total General',tot,'') +
+  if(nav==='general'){
+    html+='<div style="background:var(--g50);border:1.5px dashed var(--g300);border-radius:var(--r);padding:48px 24px;text-align:center;margin-top:8px">'+
+      '<i class="ti ti-clock" style="font-size:40px;color:var(--g400)"></i>'+
+      '<p style="font-size:20px;font-weight:700;color:var(--g700);margin-top:14px">Próximamente</p>'+
+      '<p style="font-size:14px;color:var(--text2);margin-top:8px">Esta sección está en preparación.<br>Pronto encontrarás aquí los nuevos datos de Indicadores Generales.</p>'+
     '</div>';
-  return '<div class="kpi-strip">' +
-    kpi('kpi-dk','NI Arancelados',ni_f,'obj '+ni_o) +
-    kpi('kpi-md','Cumpl. NI',nip+'%','') +
-    kpi('kpi-pale','Total Alumnos',tot,'') +
-    '</div>';
+  } else if(nav==='ni'){
+    html+=renderFilterBar();
+    if(filtro==='global'){ html+=renderGlobalNI(); html+=renderRanking(); }
+    else{ var c=findC(filtro); if(c) html+=renderSingleNI(c)+renderDetalleNI(c,DATA.indexOf(c)); }
+  } else if(nav==='pers'){
+    html+=renderFilterBar();
+    if(filtro==='global'){ html+=renderGlobalPers(); }
+    else{
+      var c=findC(filtro);
+      if(c) html+=renderSinglePers(c)+renderDetallePersConTabs(c,DATA.indexOf(c));
+    }
+  }
+  el.innerHTML=html;
 }
 
-function kpi(cls, label, val, sub) {
-  return '<div class="kpi ' + cls + '"><div class="kl">' + label + '</div><div class="kv">' +
-    val + '</div>' + (sub ? '<div class="ks">' + sub + '</div>' : '') + '</div>';
+function findC(code){ for(var i=0;i<DATA.length;i++) if(DATA[i].code===code) return DATA[i]; return null; }
+
+function renderFilterBar(){
+  var h='<div class="filter-row"><span class="flabel"><i class="ti ti-filter" style="font-size:12px;margin-right:3px"></i>Ver:</span>';
+  h+='<button class="fb'+(filtro==='global'?' fb-on':'')+'" onclick="setFiltro(\'global\')">Global</button>';
+  for(var i=0;i<DATA.length;i++) h+='<button class="fb'+(filtro===DATA[i].code?' fb-on':'')+'" onclick="setFiltro(\''+DATA[i].code+'\')">'+DATA[i].code+'</button>';
+  return h+'</div>';
 }
 
-function renderSingleKPI(c) {
-  var rp=pct(c.rn_ri,c.rn_obj), r1p=pct(c.r1c_ri,c.r1c_obj), nip=pct(c.ni_aranc_fact,c.ni_obj);
+function kpi(cls,label,val,sub){
+  return '<div class="kpi '+cls+'"><div class="kl">'+label+'</div><div class="kv">'+val+'</div>'+(sub?'<div class="ks">'+sub+'</div>':'')+'</div>';
+}
+function field(label,val){ return '<div class="fr"><label>'+label+'</label><div class="fv">'+val+'</div></div>'; }
+function fieldCalc(label,val){ return '<div class="fr"><label>'+label+'</label><div class="fv fv-calc">'+val+'</div></div>'; }
+
+/* ===== INDICADORES GENERALES ===== */
+function renderGlobalGeneral(){
+  var rn_ri=0,rn_obj=0,r1c_ri=0,r1c_obj=0;
+  for(var i=0;i<DATA.length;i++){ rn_ri+=DATA[i].rn_ri; rn_obj+=DATA[i].rn_obj; r1c_ri+=DATA[i].r1c_ri; r1c_obj+=DATA[i].r1c_obj; }
+  var rp=pct(rn_ri,rn_obj), r1p=pct(r1c_ri,r1c_obj);
+  return '<div class="kpi-strip">'+
+    kpi('kpi-dk','RI Netos Total',rn_ri,'obj '+rn_obj)+
+    kpi('kpi-md','Cumpl. RI Neta',rp+'%','')+
+    kpi('kpi-dk','RI 1a Cohorte',r1c_ri,'obj '+r1c_obj)+
+    kpi('kpi-md','Cumpl. 1C',r1p+'%','')+
+  '</div>';
+}
+function renderSingleGeneral(c){
+  var rp=pct(c.rn_ri,c.rn_obj), r1p=pct(c.r1c_ri,c.r1c_obj);
+  return '<div class="kpi-strip">'+
+    kpi('kpi-dk','RI Netos',c.rn_ri,'obj '+c.rn_obj)+
+    kpi('kpi-md','Cumpl. RI Neta',rp+'%','')+
+    kpi('kpi-dk','RI 1a Cohorte',c.r1c_ri,'obj '+c.r1c_obj)+
+    kpi('kpi-md','Cumpl. 1C',r1p+'%','')+
+  '</div>';
+}
+function renderCardGeneral(c,i){
+  var rp=pct(c.rn_ri,c.rn_obj), r1p=pct(c.r1c_ri,c.r1c_obj);
+  var pid='cc_gen_'+i;
+  return '<div class="cc"><div class="ch" onclick="toggleCard(\''+pid+'\',this)">'+
+    '<div class="cname"><span class="ccode">'+c.code+'</span><span class="cfull">'+c.nombre+'</span></div>'+
+    '<div class="cbadges">'+bOk(rp,'RN')+bOk(r1p,'1C')+'<i class="ti ti-chevron-down chev"></i></div>'+
+    '</div><div class="cbody" id="'+pid+'">'+renderDetalleGeneral(c,i)+'</div></div>';
+}
+function renderDetalleGeneral(c,i){
+  var rp=pct(c.rn_ri,c.rn_obj), r1p=pct(c.r1c_ri,c.r1c_obj);
+  var h='<div class="sec-head"><i class="ti ti-arrow-back-up"></i>Reinscripcion Neta</div><div class="fgrid">';
+  h+=field('Total arancelados periodo anterior',c.rn_aranc_ant);
+  h+=field('RI con aranceles generados',c.rn_aranc_gen);
+  h+=field('Reinscriptos',c.rn_ri);
+  h+=field('Fin cursado / Graduado',c.rn_fin);
+  h+=field('Pases enviados',c.rn_pases_env);
+  h+=field('Pases recibidos',c.rn_pases_rec);
+  h+=field('Recuperos',c.rn_rec);
+  h+=field('Persistencia neta',c.rn_pers+'%');
+  h+='</div>';
+  h+='<div class="divh"></div>';
+  h+='<div class="sec-head"><i class="ti ti-star"></i>Reinscripcion 1a Cohorte</div><div class="fgrid">';
+  h+=field('Total inscriptos periodo anterior',c.r1c_ins_ant);
+  h+=field('RI 1C con aranceles generados',c.r1c_aranc_gen);
+  h+=field('Reinscriptos 1C',c.r1c_ri);
+  h+=field('Pases enviados',c.r1c_pases_env);
+  h+=field('Pases recibidos',c.r1c_pases_rec);
+  h+=field('Persistencia neta 1C',c.r1c_pers+'%');
+  h+='</div>';
+  return h;
+}
+
+/* ===== NUEVOS INGRESANTES ===== */
+function renderGlobalNI(){
+  var ni_f=0,ni_o=0,ni_call=0,tot=0;
+  for(var i=0;i<DATA.length;i++){ ni_f+=DATA[i].ni_aranc_fact; ni_o+=DATA[i].ni_obj; ni_call+=DATA[i].ni_call; tot+=totalFinal(DATA[i]); }
+  var nip=pct(ni_f,ni_o);
+  return '<div class="kpi-strip">'+
+    kpi('kpi-dk','NI Arancelados Total',ni_f,'obj '+ni_o)+
+    kpi('kpi-lt','NI Arancelados Call',ni_call,'')+
+    kpi('kpi-mint','Total Estudiantes',tot,'')+
+  '</div>';
+}
+function renderSingleNI(c){
+  return '<div class="kpi-strip">'+
+    kpi('kpi-dk','NI Arancelados Total',c.ni_aranc_fact,'obj '+c.ni_obj)+
+    kpi('kpi-lt','NI Arancelados Call',c.ni_call,'')+
+    kpi('kpi-mint','Total Estudiantes',totalFinal(c),'')+
+  '</div>';
+}
+function renderCardNI(c,i){
+  var nip=pct(c.ni_aranc_fact,c.ni_obj);
+  var pid='cc_ni_'+i;
+  return '<div class="cc"><div class="ch" onclick="toggleCard(\''+pid+'\',this)">'+
+    '<div class="cname"><span class="ccode">'+c.code+'</span><span class="cfull">'+c.nombre+'</span></div>'+
+    '<div class="cbadges">'+bOk(nip,'NI')+'<span class="badge b-neu">Call: '+c.ni_call+'</span><span class="badge b-neu">'+totalFinal(c)+' estudiantes</span><i class="ti ti-chevron-down chev"></i></div>'+
+    '</div><div class="cbody" id="'+pid+'">'+renderDetalleNI(c,i)+'</div></div>';
+}
+function renderDetalleNI(c,i){
+  var nip=pct(c.ni_aranc_fact,c.ni_obj);
   var tm=pct(c.ni_mat_fact,c.ni_mat_ant), ta=pct(c.ni_aranc_fact,c.ni_aranc_ant);
-  if (nav === 'sig') return '<div class="kpi-strip">' +
-    kpi('kpi-dk','RI Netos',c.rn_ri,'obj '+c.rn_obj) +
-    kpi('kpi-md','Cumpl. RI Neta',rp+'%','') +
-    kpi('kpi-dk','RI 1a Cohorte',c.r1c_ri,'obj '+c.r1c_obj) +
-    kpi('kpi-md','Cumpl. 1C',r1p+'%','') +
-    kpi('kpi-pale','Total Alumnos',totalFinal(c),'') +
-    '</div>';
-  return '<div class="kpi-strip">' +
-    kpi('kpi-dk','NI Arancelados',c.ni_aranc_fact,'obj '+c.ni_obj) +
-    kpi('kpi-md','Cumpl. NI',nip+'%','') +
-    kpi('kpi-lt','Tasa Mat.',tm+'%','') +
-    kpi('kpi-lt','Tasa Aranc.',ta+'%','') +
-    kpi('kpi-pale','Total Alumnos',totalFinal(c),'') +
-    '</div>';
-}
-
-function renderCard(c, i) {
-  var rp=pct(c.rn_ri,c.rn_obj), r1p=pct(c.r1c_ri,c.r1c_obj), nip=pct(c.ni_aranc_fact,c.ni_obj);
-  var pid = 'cc_' + nav + '_' + i;
-  var badges = nav === 'sig'
-    ? bOk(rp,'RN') + bOk(r1p,'1C') + '<span class="badge b-neu">' + totalFinal(c) + ' alumnos</span>'
-    : bOk(nip,'NI') + '<span class="badge b-neu">' + totalFinal(c) + ' alumnos</span>';
-  return '<div class="cc">' +
-    '<div class="ch" onclick="toggleCard(\'' + pid + '\',this)">' +
-      '<div class="cname"><span class="ccode">' + c.code + '</span><span class="cfull">' + c.nombre + '</span></div>' +
-      '<div class="cbadges">' + badges + '<i class="ti ti-chevron-down chev"></i></div>' +
-    '</div>' +
-    '<div class="cbody" id="' + pid + '">' + renderDetalle(c, i) + '</div>' +
-  '</div>';
-}
-
-function renderDetalle(c, i) { return nav === 'sig' ? renderSig(c, i) : renderNI(c, i); }
-
-function field(label, val) {
-  return '<div class="fr"><label>' + label + '</label><div class="fv">' + val + '</div></div>';
-}
-function fieldCalc(label, val) {
-  return '<div class="fr"><label>' + label + '</label><div class="fv fv-calc">' + val + '</div></div>';
-}
-
-function totalBarHtml(c, i) {
-  var calc = totalCalc(c), fin = totalFinal(c), id = 'tv_' + i;
-  return '<div class="total-box">' +
-    '<span class="tl"><i class="ti ti-users" style="font-size:14px;margin-right:6px"></i>Total Alumnos (RI Neta + NI)</span>' +
-    '<div class="tv-wrap">' +
-      '<div class="tv" id="' + id + '">' + fin + '</div>' +
-      '<div class="total-adj">' +
-        '<label>Ajustar:</label>' +
-        '<input class="total-inp" type="number" value="' + fin + '" onchange="ajustarTotal(' + i + ',this.value,\'' + id + '\')">' +
-        '<button class="btn-reset" onclick="resetTotal(' + i + ',' + calc + ',\'' + id + '\')">Auto</button>' +
-      '</div>' +
-    '</div>' +
-  '</div>';
-}
-
-function ajustarTotal(i, val, elId) {
-  DATA[i].total_manual = parseInt(val) || totalCalc(DATA[i]);
-  var el = document.getElementById(elId);
-  if (el) el.textContent = DATA[i].total_manual;
-}
-function resetTotal(i, calc, elId) {
-  DATA[i].total_manual = null;
-  var el = document.getElementById(elId); if (el) el.textContent = calc;
-  var inp = el ? el.parentElement.querySelector('.total-inp') : null; if (inp) inp.value = calc;
-}
-
-function renderSig(c, i) {
-  var rp = pct(c.rn_ri, c.rn_obj), r1p = pct(c.r1c_ri, c.r1c_obj);
-  var h = '<div class="sec-head"><i class="ti ti-arrow-back-up"></i>Reinscripcion Neta</div><div class="fgrid">';
-  h += field('Total aranc. periodo ant.', c.rn_aranc_ant);
-  h += field('RI con aranc. generados', c.rn_aranc_gen);
-  h += field('Reinscriptos', c.rn_ri);
-  h += field('Objetivo', c.rn_obj);
-  h += field('Fin cursado / Graduado', c.rn_fin);
-  h += field('Pases enviados', c.rn_pases_env);
-  h += field('Pases recibidos', c.rn_pases_rec);
-  h += field('Recuperos', c.rn_rec);
-  h += field('Persistencia neta', c.rn_pers + '%');
-  h += fieldCalc('% Cumpl. objetivo', rp + '%');
-  h += '</div>';
-  h += '<div class="prog-wrap"><div class="prog-label"><span>RI Netos vs Objetivo</span><span>' + c.rn_ri + ' / ' + c.rn_obj + '</span></div>';
-  h += '<div class="pbg"><div class="pf ' + pclr(rp) + '" style="width:' + Math.min(rp,100) + '%"></div></div></div>';
-  h += '<div class="divh"></div>';
-  h += '<div class="sec-head"><i class="ti ti-star"></i>Reinscripcion 1a Cohorte</div><div class="fgrid">';
-  h += field('Total inscr. periodo ant.', c.r1c_ins_ant);
-  h += field('RI 1C con aranc. gen.', c.r1c_aranc_gen);
-  h += field('Reinscriptos 1C', c.r1c_ri);
-  h += field('Objetivo', c.r1c_obj);
-  h += field('Pases enviados', c.r1c_pases_env);
-  h += field('Pases recibidos', c.r1c_pases_rec);
-  h += field('Persistencia neta 1C', c.r1c_pers + '%');
-  h += fieldCalc('% Cumpl. objetivo', r1p + '%');
-  h += '</div>';
-  h += '<div class="prog-wrap"><div class="prog-label"><span>RI 1C vs Objetivo</span><span>' + c.r1c_ri + ' / ' + c.r1c_obj + '</span></div>';
-  h += '<div class="pbg"><div class="pf ' + pclr(r1p) + '" style="width:' + Math.min(r1p,100) + '%"></div></div></div>';
-  h += totalBarHtml(c, i);
+  var h='<div class="sec-head"><i class="ti ti-user-plus"></i>Nuevos Ingresantes</div>';
+  h+='<div class="fgrid" style="grid-template-columns:repeat(4,1fr);margin-bottom:10px">';
+  h+=field('Matriculados Año Anterior',c.ni_mat_ant);
+  h+=field('Matriculados Facturados',c.ni_mat_fact);
+  h+=field('Arancelados Año Anterior',c.ni_aranc_ant);
+  h+=field('Arancelados Facturados',c.ni_aranc_fact);
+  h+='</div>';
+  h+='<div class="fgrid" style="grid-template-columns:repeat(3,1fr);margin-bottom:12px">';
+  h+=field('Objetivo Semestral',c.ni_obj);
+  h+=fieldCalc('Cumplimiento de Objetivo',nip+'%');
+  h+=field('Porcentaje de Inscripción Call',c.ni_call ? (pct(c.ni_call,c.ni_aranc_fact)+'%') : '0%');
+  h+='</div>';
+  h+='<div class="prog-wrap"><div class="prog-label"><span>NI vs Objetivo</span><span>'+c.ni_aranc_fact+' / '+c.ni_obj+'</span></div><div class="pbg"><div class="pf '+pclr(nip)+'" style="width:'+Math.min(nip,100)+'%"></div></div></div>';
+  h+='<div class="divh"></div>';
+  h+='<div class="sec-head"><i class="ti ti-target"></i>Indicadores de Captación</div><div class="fgrid">';
+  h+=field('Conversión Lead vs NI',c.ni_conv_lead ? c.ni_conv_lead+'%' : '0%');
+  h+=field('Objetivo Lead Genuino',c.ni_obj_lead);
+  h+=fieldCalc('Cumplimiento Lead Genuino',c.ni_cumpl_lead ? c.ni_cumpl_lead+'%' : '0%');
+  h+='</div>';
+  h+=totalBarHtml(c,i);
   return h;
 }
 
-function renderNI(c, i) {
-  var nip = pct(c.ni_aranc_fact, c.ni_obj);
-  var tm = pct(c.ni_mat_fact, c.ni_mat_ant), ta = pct(c.ni_aranc_fact, c.ni_aranc_ant);
-  var h = '<div class="sec-head"><i class="ti ti-user-plus"></i>Nuevos Ingresantes</div><div class="fgrid">';
-  h += field('Matriculas ano anterior', c.ni_mat_ant);
-  h += field('Matriculas facturadas', c.ni_mat_fact);
-  h += field('Tasa fact. mat.', tm + '%');
-  h += field('Aranceles ano anterior', c.ni_aranc_ant);
-  h += field('Aranceles facturados', c.ni_aranc_fact);
-  h += field('Tasa fact. aranc.', ta + '%');
-  h += field('Objetivo', c.ni_obj);
-  h += field('Persistencia NI', c.ni_pers + '%');
-  h += fieldCalc('% Cumpl. objetivo', nip + '%');
-  h += '</div>';
-  h += '<div class="prog-wrap"><div class="prog-label"><span>NI vs Objetivo</span><span>' + c.ni_aranc_fact + ' / ' + c.ni_obj + '</span></div>';
-  h += '<div class="pbg"><div class="pf ' + pclr(nip) + '" style="width:' + Math.min(nip,100) + '%"></div></div></div>';
-  h += totalBarHtml(c, i);
-  return h;
-}
-
-function renderCargar() {
-  return '<div style="background:white;border:1px solid var(--g200);border-radius:var(--r);padding:28px;text-align:center;box-shadow:var(--shadow)">' +
-    '<i class="ti ti-table" style="font-size:36px;color:var(--g700)"></i>' +
-    '<p style="margin-top:12px;font-size:16px;color:var(--g800);font-weight:700">Los datos se cargan desde Google Sheets</p>' +
-    '<p style="font-size:13px;color:var(--text2);margin-top:8px;line-height:1.6">Edita la planilla y recarga el tablero para ver los cambios.</p>' +
-    '<button class="bsave" style="margin-top:18px" onclick="location.reload()"><i class="ti ti-refresh" style="margin-right:6px"></i>Recargar datos</button>' +
-  '</div>';
-}
-
-function descargarExcel() {
-  var fecha = new Date(), f = fecha.toLocaleDateString('es-AR');
-  var totalRNRI = 0, totalRNObj = 0, totalR1CRI = 0, totalR1CObj = 0;
-  var totalNIF = 0, totalNIO = 0, totalAlumnos = 0;
-  for (var i=0;i<DATA.length;i++) {
-    totalRNRI+=DATA[i].rn_ri; totalRNObj+=DATA[i].rn_obj;
-    totalR1CRI+=DATA[i].r1c_ri; totalR1CObj+=DATA[i].r1c_obj;
-    totalNIF+=DATA[i].ni_aranc_fact; totalNIO+=DATA[i].ni_obj;
-    totalAlumnos+=totalFinal(DATA[i]);
+function renderRanking(){
+  var h='<div class="ranking-wrap">';
+  h+='<div class="ranking-head"><i class="ti ti-trophy" style="font-size:18px;color:var(--g300)"></i><span>Ranking de Vendedoras</span></div>';
+  if(!RANKING || RANKING.length===0){
+    h+='<div class="rank-empty">Cargando ranking... Si no aparece, verificá que la Hoja 2 de la planilla tenga datos.</div>';
+  } else {
+    var max=RANKING[0]?RANKING[0].ni:1;
+    for(var i=0;i<RANKING.length;i++){
+      var pos=i+1;
+      var posCls=pos===1?'gold':pos===2?'silver':pos===3?'bronze':'';
+      var barW=max>0?Math.round(RANKING[i].ni/max*100):0;
+      h+='<div class="ranking-item">'+
+        '<div class="rank-pos '+posCls+'">'+pos+'</div>'+
+        '<div class="rank-name">'+RANKING[i].nombre+'</div>'+
+        '<div class="rank-bar-wrap"><div class="rank-bar"><div class="rank-bar-fill" style="width:'+barW+'%"></div></div></div>'+
+        '<div class="rank-val">'+RANKING[i].ni+'</div>'+
+      '</div>';
+    }
   }
-  var res = [
-    ['CAU Fundacion - Performance', 'Fecha: ' + f], [],
-    ['RESUMEN GLOBAL'],
-    ['Indicador','Valor','Objetivo','% Cumplimiento'],
-    ['RI Netos total', totalRNRI, totalRNObj, pct(totalRNRI,totalRNObj)+'%'],
-    ['RI 1a Cohorte total', totalR1CRI, totalR1CObj, pct(totalR1CRI,totalR1CObj)+'%'],
-    ['NI Arancelados total', totalNIF, totalNIO, pct(totalNIF,totalNIO)+'%'],
-    ['Total alumnos general', totalAlumnos, '', '']
+  h+='</div>';
+  return h;
+}
+
+/* ===== PERSISTENCIA ===== */
+function renderGlobalPers(){
+  var rn_ri=0,ni_f=0,tot=0,al_ed=0,al_edh=0;
+  for(var i=0;i<DATA.length;i++){
+    rn_ri+=DATA[i].rn_ri; ni_f+=DATA[i].ni_aranc_fact; tot+=totalFinal(DATA[i]);
+    al_ed+=DATA[i].alumnos_ed||0; al_edh+=DATA[i].alumnos_edh||0;
+  }
+  // ORDEN: KPIs -> Ranking comision -> Alumnos ED/EDH -> Lista ranking avance
+  return '<div class="kpi-strip">'+
+    kpi('kpi-dk','RI Arancelados Total',rn_ri,'')+
+    kpi('kpi-mint','Total Estudiantes',tot,'')+
+  '</div>'+
+  renderRankingPers()+
+  '<div class="kpi-strip" style="margin-top:16px;margin-bottom:16px">'+
+    kpi('kpi-md','Alumnos ED',al_ed,'')+
+    kpi('kpi-lt','Alumnos EDH',al_edh,'')+
+  '</div>'+
+  renderListaPers();
+}
+
+function renderListaPers(){
+  var sorted=DATA.slice().sort(function(a,b){ return b.r1c_pers-a.r1c_pers; });
+  var h='<div class="ranking-wrap" style="margin-top:0">';
+  h+='<div class="ranking-head"><i class="ti ti-trophy" style="font-size:18px;color:var(--g300)"></i><span>Ranking de Avance Actual Total</span></div>';
+  var max1c=sorted[0]?sorted[0].r1c_pers:100;
+  for(var i=0;i<sorted.length;i++){
+    var c=sorted[i];
+    var pos=i+1;
+    var posCls=pos===1?'gold':pos===2?'silver':pos===3?'bronze':'';
+    var rp=c.rn_pers, r1p=c.r1c_pers, cma=c.sa_cma||0;
+    var rpcol=rp>=90?'var(--g500)':rp>=75?'#BA7517':'#C0392B';
+    var r1pcol=r1p>=90?'var(--g500)':r1p>=75?'#BA7517':'#C0392B';
+    var cmacol=cma>=90?'var(--g500)':cma>=75?'#BA7517':'#C0392B';
+    h+='<div class="ranking-item">';
+    h+='<div class="rank-pos '+posCls+'">'+pos+'</div>';
+    h+='<div class="cname" style="flex:1"><span class="ccode">'+c.code+'</span><span style="font-size:14px;font-weight:700;color:var(--text)">'+c.nombre+'</span></div>';
+    h+='<div style="display:flex;gap:8px;align-items:center">';
+    h+='<span style="font-size:11px;font-weight:700;padding:4px 10px;border-radius:20px;background:'+rpcol+'22;color:'+rpcol+';white-space:nowrap">Pers. RN '+rp+'%</span>';
+    h+='<span style="font-size:11px;font-weight:700;padding:4px 10px;border-radius:20px;background:'+r1pcol+'22;color:'+r1pcol+';white-space:nowrap">Pers. 1C '+r1p+'%</span>';
+    h+='<span style="font-size:11px;font-weight:700;padding:4px 10px;border-radius:20px;background:'+cmacol+'22;color:'+cmacol+';white-space:nowrap">CMA '+cma+'%</span>';
+    h+='</div>';
+    h+='</div>';
+  }
+  h+='</div>';
+  return h;
+}
+
+
+function renderRankingPers(){
+  var sorted = DATA.slice().sort(function(a,b){ return b.comision_pers - a.comision_pers; });
+  var h='<div class="ranking-wrap" style="margin-top:16px">';
+  h+='<div class="ranking-head"><i class="ti ti-trophy" style="font-size:18px;color:var(--g300)"></i><span>Ranking de CAU por Comisión de Persistencia</span></div>';
+  var max = sorted[0] ? sorted[0].comision_pers : 100;
+  for(var i=0;i<sorted.length;i++){
+    var c=sorted[i];
+    var pos=i+1;
+    var posCls=pos===1?'gold':pos===2?'silver':pos===3?'bronze':'';
+    var barW=max>0?Math.round(c.comision_pers/max*100):0;
+    var barCol=c.comision_pers>=90?'var(--g500)':c.rn_pers>=75?'#BA7517':'#C0392B';
+    h+='<div class="ranking-item">'+
+      '<div class="rank-pos '+posCls+'">'+pos+'</div>'+
+      '<div class="cname" style="flex:1"><span class="ccode">'+c.code+'</span><span style="font-size:13px;font-weight:600;color:var(--text)">'+c.nombre+'</span></div>'+
+      '<div class="rank-bar-wrap" style="width:160px"><div class="rank-bar"><div class="rank-bar-fill" style="width:'+barW+'%;background:'+barCol+'"></div></div></div>'+
+      '<div class="rank-val">'+c.comision_pers+'%</div>'+
+    '</div>';
+  }
+  h+='</div>';
+  return h;
+}
+function renderSinglePers(c){
+  return ''; // KPIs movidos dentro de la tab Reinscripción
+}
+function renderCardPers(c,i){
+  var pp=pct(c.rn_ri,c.rn_aranc_ant), p1c=pct(c.r1c_ri,c.r1c_ins_ant);
+  var pid='cc_pers_'+i;
+  return '<div class="cc"><div class="ch" onclick="toggleCard(\''+pid+'\',this)">'+
+    '<div class="cname"><span class="ccode">'+c.code+'</span><span class="cfull">'+c.nombre+'</span></div>'+
+    '<div class="cbadges">'+bOk(pp,'RN')+bOk(p1c,'1C')+'<i class="ti ti-chevron-down chev"></i></div>'+
+    '</div><div class="cbody" id="'+pid+'">'+renderDetallePers(c,i)+'</div></div>';
+}
+function renderDetallePers(c,i){
+  var h='<div class="sec-head"><i class="ti ti-repeat"></i>Reinscripción Neta</div>';
+  h+='<div class="fgrid" style="grid-template-columns:repeat(3,1fr);margin-bottom:10px">';
+  h+=field('Total Arancelados Período Anterior',c.rn_aranc_ant);
+  h+=field('RI con Aranceles Generados',c.rn_aranc_gen);
+  h+=field('Reinscriptos',c.rn_ri);
+  h+='</div>';
+  h+='<div class="fgrid" style="grid-template-columns:repeat(4,1fr);margin-bottom:12px">';
+  h+=field('Fin de Cursado / Graduado',c.rn_fin);
+  h+=field('Pases Enviados',c.rn_pases_env);
+  h+=field('Pases Recibidos',c.rn_pases_rec);
+  h+=field('Recuperos',c.rn_rec);
+  h+='</div>';
+  h+='<div class="prog-wrap"><div class="prog-label"><span>% de Persistencia Neta</span><span>'+c.rn_pers+'%</span></div>';
+  h+='<div class="pbg"><div class="pf '+pclr(c.rn_pers)+'" style="width:'+Math.min(c.rn_pers,100)+'%"></div></div></div>';
+  h+='<div class="divh"></div>';
+  h+='<div class="sec-head"><i class="ti ti-star"></i>Reinscripción 1ª Cohorte</div>';
+  h+='<div class="fgrid" style="grid-template-columns:repeat(3,1fr);margin-bottom:10px">';
+  h+=field('Total Inscriptos Período Anterior',c.r1c_ins_ant);
+  h+=field('RI 1C con Aranceles Generados',c.r1c_aranc_gen);
+  h+=field('Reinscriptos',c.r1c_ri);
+  h+='</div>';
+  h+='<div class="fgrid" style="grid-template-columns:repeat(2,1fr);margin-bottom:12px">';
+  h+=field('Pases Enviados',c.r1c_pases_env);
+  h+=field('Pases Recibidos',c.r1c_pases_rec);
+  h+='</div>';
+  h+='<div class="prog-wrap"><div class="prog-label"><span>% de Persistencia 1ª Cohorte</span><span>'+c.r1c_pers+'%</span></div>';
+  h+='<div class="pbg"><div class="pf '+pclr(c.r1c_pers)+'" style="width:'+Math.min(c.r1c_pers,100)+'%"></div></div></div>';
+  h+='<div class="divh"></div>';
+  h+=renderSeguimientoAcademico(c,i);
+  return h;
+}
+
+function alertaColor(alerta){
+  var a=(alerta||"").toLowerCase().trim();
+  if(a==="verde"||a==="ok"||a==="bien") return "var(--g500)";
+  if(a==="amarillo"||a==="precaucion"||a==="atencion"||a==="precaución"||a==="atención") return "#BA7517";
+  return "#C0392B";
+}
+
+
+function renderNPSProx(){
+  return '<div style="background:var(--g50);border:1.5px dashed var(--g300);border-radius:var(--r);padding:48px 24px;text-align:center;margin-top:8px">'+'<i class="ti ti-clock" style="font-size:40px;color:var(--g400)"></i>'+'<p style="font-size:20px;font-weight:700;color:var(--g700);margin-top:14px">Próximamente</p>'+'<p style="font-size:14px;color:var(--text2);margin-top:8px">Esta sección está en construcción.<br>Pronto encontrarás aquí los datos de NPS.</p>'+'</div>';
+}
+function renderSeguimientoAcademico(c,i){
+  var cma=c.sa_cma||0;
+  var h='<div style="display:grid;grid-template-columns:2fr repeat(5,1fr);gap:10px;margin-bottom:16px">';
+  h+='<div style="background:var(--g700);border-radius:var(--r);padding:16px 18px;display:flex;flex-direction:column;justify-content:center">';
+  h+='<div style="font-size:11px;font-weight:700;color:var(--g300);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">CMA</div>';
+  h+='<div style="font-size:36px;font-weight:700;color:white;font-family:DM Mono,monospace">'+cma+'%</div>';
+  h+='<div style="font-size:11px;color:var(--g300);margin-top:4px;font-weight:500">Cumplimiento Medio Académico</div>';
+  h+='</div>';
+  var cards=[
+    {label:"Aprobado",   k:"sa_aprobado", col:"#1D9E75",bg:"#E1F5EE"},
+    {label:"Regular",    k:"sa_regular",  col:"#BA7517",bg:"#FAEEDA"},
+    {label:"Lib. por nota",k:"sa_lib_nota",col:"#E07020",bg:"#FDECD5"},
+    {label:"Libre",      k:"sa_libre",    col:"#C0392B",bg:"#FDECEA"},
+    {label:"Cursando",   k:"sa_cursando", col:"#185FA5",bg:"#E6F1FB"},
   ];
-  var rih = ['Codigo','Centro','Aranc. periodo ant.','RI aranc. gen.','Reinscriptos','Objetivo','% Cumpl.',
-             'Fin cursado','Pases env.','Pases rec.','Recuperos','Persistencia neta',
-             'RI 1C aranc. gen.','RI 1C Reinscriptos','RI 1C Objetivo','RI 1C % Cumpl.',
-             '1C Pases env.','1C Pases rec.','Persistencia 1C','Total alumnos'];
-  var rir = DATA.map(function(c){
-    return [c.code,c.nombre,c.rn_aranc_ant,c.rn_aranc_gen,c.rn_ri,c.rn_obj,pct(c.rn_ri,c.rn_obj)+'%',
-            c.rn_fin,c.rn_pases_env,c.rn_pases_rec,c.rn_rec,c.rn_pers+'%',
-            c.r1c_aranc_gen,c.r1c_ri,c.r1c_obj,pct(c.r1c_ri,c.r1c_obj)+'%',
-            c.r1c_pases_env,c.r1c_pases_rec,c.r1c_pers+'%',totalFinal(c)];
+  for(var ci=0;ci<cards.length;ci++){
+    var cd=cards[ci];
+    var val=(c[cd.k]||0)+"%";
+    h+='<div style="background:'+cd.bg+';border:1.5px solid '+cd.col+'44;border-radius:var(--r);padding:14px 10px;text-align:center">';
+    h+='<div style="font-size:10px;font-weight:700;color:'+cd.col+';text-transform:uppercase;letter-spacing:.04em;margin-bottom:6px">'+cd.label+'</div>';
+    h+='<div style="font-size:20px;font-weight:700;color:'+cd.col+';font-family:DM Mono,monospace">'+val+'</div>';
+    h+='</div>';
+  }
+  h+='</div>';
+  var tps=[
+    {label:"TP 1",pk:"sa_tp1_pct",ak:"sa_tp1_alerta",ok:"sa_tp1_obj",ck:"sa_tp1_cumpl",fk:"sa_tp1_falt"},
+    {label:"TP 2",pk:"sa_tp2_pct",ak:"sa_tp2_alerta",ok:"sa_tp2_obj",ck:"sa_tp2_cumpl",fk:"sa_tp2_falt"},
+    {label:"TP 3",pk:"sa_tp3_pct",ak:"sa_tp3_alerta",ok:"sa_tp3_obj",ck:"sa_tp3_cumpl",fk:"sa_tp3_falt"},
+    {label:"TP 4",pk:"sa_tp4_pct",ak:"sa_tp4_alerta",ok:"sa_tp4_obj",ck:"sa_tp4_cumpl",fk:"sa_tp4_falt"},
+    {label:"Recuperatorios",pk:"sa_rec_pct",ak:"sa_rec_alerta",ok:"sa_rec_obj",ck:"sa_rec_cumpl",fk:"sa_rec_falt"},
+    {label:"Integradores",pk:"sa_int_pct",ak:"sa_int_alerta",ok:"sa_int_obj",ck:"sa_int_cumpl",fk:"sa_int_falt"},
+  ];
+  for(var t=0;t<tps.length;t++){
+    var tp=tps[t];
+    var alerta=c[tp.ak]||"";
+    var col=alertaColor(alerta);
+    var alertaLabel=alerta||"—";
+    var cumplVal=parseFloat(c[tp.ck])||0;
+    h+='<div style="background:white;border:1px solid var(--border);border-radius:var(--r-sm);padding:12px 14px;margin-bottom:10px">';
+    h+='<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">';
+    h+='<span style="font-size:12px;font-weight:700;color:var(--g700);text-transform:uppercase;letter-spacing:.05em">% '+tp.label+'</span>';
+    h+='<span style="font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;background:'+col+'33;color:'+col+'">'+alertaLabel+'</span>';
+    h+='</div>';
+    h+='<div class="fgrid" style="grid-template-columns:repeat(4,1fr);margin-bottom:8px">';
+    h+=field("% "+tp.label,(c[tp.pk]||0)+"%");
+    h+=field("% Objetivo Actual",(c[tp.ok]||0)+"%");
+    h+=fieldCalc("% Cumplimiento Objetivo",(c[tp.ck]||0)+"%");
+    h+=field("Faltantes para Objetivo",c[tp.fk]||0);
+    h+='</div>';
+    h+='<div class="pbg" style="height:8px"><div style="height:100%;border-radius:4px;background:'+col+';transition:width .5s;width:'+Math.min(cumplVal,100)+'%"></div></div>';
+    h+='</div>';
+  }
+  return h;
+}
+
+function renderDetallePersConTabs(c,i){
+  var btnBase="padding:8px 18px;border-radius:var(--r-sm);font-size:13px;font-weight:700;cursor:pointer;font-family:DM Sans,sans-serif;transition:all .15s;";
+  var btnOn=btnBase+"border:1.5px solid var(--g700);background:var(--g700);color:white;";
+  var btnOff=btnBase+"border:1.5px solid var(--g200);background:white;color:var(--g700);";
+  var h='<div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap">';
+  h+='<button id="btn_reinsc_'+i+'" style="'+btnOn+'" onclick="switchPersTab('+i+',\'reinsc\')"><i class="ti ti-repeat" style="margin-right:5px"></i>Reinscripción</button>';
+  h+='<button id="btn_acad_'+i+'" style="'+btnOff+'" onclick="switchPersTab('+i+',\'acad\')"><i class="ti ti-book" style="margin-right:5px"></i>Seguimiento Académico</button>';
+  h+='<button id="btn_nps_'+i+'" style="'+btnOff+'" onclick="switchPersTab('+i+',\'nps\')"><i class="ti ti-star" style="margin-right:5px"></i>NPS</button>';
+  h+='</div>';
+  h+='<div id="tab_reinsc_'+i+'">'+renderDetalleReinsc(c,i)+'</div>';
+  h+='<div id="tab_acad_'+i+'" style="display:none">'+renderSeguimientoAcademico(c,i)+'</div>';
+  h+='<div id="tab_nps_'+i+'" style="display:none">'+renderNPSProx()+'</div>';
+  return h;
+}
+
+function switchPersTab(i,tab){
+  var ids=["reinsc","acad","nps"];
+  ids.forEach(function(id){
+    var el=document.getElementById("tab_"+id+"_"+i);
+    var btn=document.getElementById("btn_"+id+"_"+i);
+    if(!el||!btn)return;
+    if(id===tab){
+      el.style.display=""; btn.style.background="var(--g700)"; btn.style.color="white"; btn.style.borderColor="var(--g700)";
+    } else {
+      el.style.display="none"; btn.style.background="white"; btn.style.color="var(--g700)"; btn.style.borderColor="var(--g200)";
+    }
   });
-  var nih = ['Codigo','Centro','Mat. ano anterior','Mat. facturadas','Tasa mat. %',
-             'Aranc. ano anterior','Aranc. facturados','Tasa aranc. %','Objetivo','% Cumpl.','Persistencia NI','Total alumnos'];
-  var nir = DATA.map(function(c){
-    return [c.code,c.nombre,c.ni_mat_ant,c.ni_mat_fact,pct(c.ni_mat_fact,c.ni_mat_ant)+'%',
-            c.ni_aranc_ant,c.ni_aranc_fact,pct(c.ni_aranc_fact,c.ni_aranc_ant)+'%',
-            c.ni_obj,pct(c.ni_aranc_fact,c.ni_obj)+'%',c.ni_pers+'%',totalFinal(c)];
-  });
-  var wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(res), 'Resumen Global');
-  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([rih].concat(rir)), 'Reinscriptos');
-  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([nih].concat(nir)), 'Nuevos Ingresantes');
-  XLSX.writeFile(wb, 'CAU_Fundacion_Performance_' + fecha.toISOString().slice(0,10) + '.xlsx');
+}
+
+function renderDetalleReinsc(c,i){
+  var h='<div class="kpi-strip" style="margin-bottom:14px">';
+  h+=kpi('kpi-dk','RI Arancelados Total',c.rn_ri,'');
+  h+=kpi('kpi-md','RI Arancelados 1ª Cohorte',c.r1c_ri,'');
+  h+='</div>';
+  h+='<div class="sec-head"><i class="ti ti-repeat"></i>Reinscripción Neta</div>';
+  h+='<div class="fgrid" style="grid-template-columns:repeat(3,1fr);margin-bottom:10px">';
+  h+=field('Total Arancelados Período Anterior',c.rn_aranc_ant);
+  h+=field('RI con Aranceles Generados',c.rn_aranc_gen);
+  h+=field('Reinscriptos',c.rn_ri);
+  h+='</div>';
+  h+='<div class="fgrid" style="grid-template-columns:repeat(4,1fr);margin-bottom:12px">';
+  h+=field('Fin de Cursado / Graduado',c.rn_fin);
+  h+=field('Pases Enviados',c.rn_pases_env);
+  h+=field('Pases Recibidos',c.rn_pases_rec);
+  h+=field('Recuperos',c.rn_rec);
+  h+='</div>';
+  h+='<div class="prog-wrap"><div class="prog-label"><span>% de Persistencia Neta</span><span>'+c.rn_pers+'%</span></div>';
+  h+='<div class="pbg"><div class="pf '+pclr(c.rn_pers)+'" style="width:'+Math.min(c.rn_pers,100)+'%"></div></div></div>';
+  h+='<div class="divh"></div>';
+  h+='<div class="sec-head"><i class="ti ti-star"></i>Reinscripción 1ª Cohorte</div>';
+  h+='<div class="fgrid" style="grid-template-columns:repeat(3,1fr);margin-bottom:10px">';
+  h+=field('Total Inscriptos Período Anterior',c.r1c_ins_ant);
+  h+=field('RI 1C con Aranceles Generados',c.r1c_aranc_gen);
+  h+=field('Reinscriptos',c.r1c_ri);
+  h+='</div>';
+  h+='<div class="fgrid" style="grid-template-columns:repeat(2,1fr);margin-bottom:12px">';
+  h+=field('Pases Enviados',c.r1c_pases_env);
+  h+=field('Pases Recibidos',c.r1c_pases_rec);
+  h+='</div>';
+  h+='<div class="prog-wrap"><div class="prog-label"><span>% de Persistencia 1ª Cohorte</span><span>'+c.r1c_pers+'%</span></div>';
+  h+='<div class="pbg"><div class="pf '+pclr(c.r1c_pers)+'" style="width:'+Math.min(c.r1c_pers,100)+'%"></div></div></div>';
+  return h;
+}
+
+function totalBarHtml(c,i){
+  var fin=totalFinal(c);
+  return '<div class="total-box">'+
+    '<span class="tl"><i class="ti ti-users" style="font-size:14px;margin-right:6px"></i>Total Estudiantes (RI Neta + NI)</span>'+
+    '<div class="tv">'+fin+'</div>'+
+  '</div>';
+}
+function ajustarTotal(i,val,elId){ DATA[i].total_manual=parseInt(val)||totalCalc(DATA[i]); var el=document.getElementById(elId); if(el)el.textContent=DATA[i].total_manual; }
+function resetTotal(i,calc,elId){ DATA[i].total_manual=null; var el=document.getElementById(elId); if(el)el.textContent=calc; var inp=el?el.parentElement.querySelector('.total-inp'):null; if(inp)inp.value=calc; }
+
+function renderCargar(){
+  return '<div style="background:white;border:1px solid var(--g200);border-radius:var(--r);padding:28px;text-align:center;box-shadow:var(--shadow)">'+
+    '<i class="ti ti-table" style="font-size:36px;color:var(--g700)"></i>'+
+    '<p style="margin-top:12px;font-size:16px;color:var(--g800);font-weight:700">Los datos se cargan desde Google Sheets</p>'+
+    '<p style="font-size:13px;color:var(--text2);margin-top:8px;line-height:1.6">Edita la planilla y recarga el tablero para ver los cambios.</p>'+
+    '<button class="bsave" style="margin-top:18px" onclick="location.reload()"><i class="ti ti-refresh" style="margin-right:6px"></i>Recargar datos</button>'+
+  '</div>';
+}
+
+function descargarExcel(){
+  var fecha=new Date(), f=fecha.toLocaleDateString('es-AR');
+  var res=[['CAU Fundacion - Performance','Fecha: '+f],[],['RESUMEN GLOBAL'],
+    ['Indicador','Valor','Objetivo','% Cumplimiento']];
+  var rn_ri=0,rn_obj=0,r1c_ri=0,r1c_obj=0,ni_f=0,ni_o=0,tot=0;
+  for(var i=0;i<DATA.length;i++){ rn_ri+=DATA[i].rn_ri; rn_obj+=DATA[i].rn_obj; r1c_ri+=DATA[i].r1c_ri; r1c_obj+=DATA[i].r1c_obj; ni_f+=DATA[i].ni_aranc_fact; ni_o+=DATA[i].ni_obj; tot+=totalFinal(DATA[i]); }
+  res.push(['RI Netos total',rn_ri,rn_obj,pct(rn_ri,rn_obj)+'%']);
+  res.push(['RI 1a Cohorte total',r1c_ri,r1c_obj,pct(r1c_ri,r1c_obj)+'%']);
+  res.push(['NI Arancelados total',ni_f,ni_o,pct(ni_f,ni_o)+'%']);
+  res.push(['Total estudiantes',tot,'','']);
+  var rih=['Codigo','Centro','Aranc. periodo ant.','RI aranc. gen.','Reinscriptos','Objetivo','% Cumpl.','Fin cursado','Pases env.','Pases rec.','Recuperos','Persistencia neta','RI 1C aranc. gen.','RI 1C Reinscriptos','RI 1C Objetivo','RI 1C % Cumpl.','1C Pases env.','1C Pases rec.','Persistencia 1C'];
+  var rir=DATA.map(function(c){ return [c.code,c.nombre,c.rn_aranc_ant,c.rn_aranc_gen,c.rn_ri,c.rn_obj,pct(c.rn_ri,c.rn_obj)+'%',c.rn_fin,c.rn_pases_env,c.rn_pases_rec,c.rn_rec,c.rn_pers+'%',c.r1c_aranc_gen,c.r1c_ri,c.r1c_obj,pct(c.r1c_ri,c.r1c_obj)+'%',c.r1c_pases_env,c.r1c_pases_rec,c.r1c_pers+'%']; });
+  var nih=['Codigo','Centro','Matriculados Año Anterior','Matriculados Facturados','Arancelados Año Anterior','Arancelados Facturados','Objetivo Semestral','Cumplimiento Objetivo','NI Call','Conversión Lead','Objetivo Lead','Cumpl. Lead','Total Estudiantes'];
+  var nir=DATA.map(function(c){ return [c.code,c.nombre,c.ni_mat_ant,c.ni_mat_fact,c.ni_aranc_ant,c.ni_aranc_fact,c.ni_obj,pct(c.ni_aranc_fact,c.ni_obj)+'%',c.ni_call,c.ni_conv_lead+'%',c.ni_obj_lead,c.ni_cumpl_lead+'%',totalFinal(c)]; });
+  var wb=XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(res),'Resumen Global');
+  XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet([rih].concat(rir)),'Indicadores Generales');
+  XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet([nih].concat(nir)),'Nuevos Ingresantes');
+  XLSX.writeFile(wb,'CAU_Fundacion_Performance_'+fecha.toISOString().slice(0,10)+'.xlsx');
   showToast('Descargado correctamente');
 }
 
-function toggleCard(id, hdr) {
-  var b = document.getElementById(id);
-  var ch = hdr.querySelector('.chev');
-  var open = b.classList.toggle('open');
-  if (ch) ch.style.transform = open ? 'rotate(180deg)' : '';
+function toggleCard(id,hdr){
+  var b=document.getElementById(id), ch=hdr.querySelector('.chev');
+  var open=b.classList.toggle('open'); if(ch)ch.style.transform=open?'rotate(180deg)':'';
 }
-
-function toggleRole() {
-  if (isAdmin) {
-    isAdmin = false;
-    document.getElementById('role-lbl').textContent = 'Visitante';
-    document.getElementById('role-btn').className = 'role-btn';
-    document.getElementById('role-btn').innerHTML = '<i class="ti ti-lock" style="font-size:13px;margin-right:4px"></i>Visitante';
-    nav = 'sig'; renderNav(); renderMain(); return;
+function toggleRole(){
+  if(isAdmin){
+    isAdmin=false;
+    document.getElementById('role-lbl').textContent='Visitante';
+    document.getElementById('role-btn').className='role-btn';
+    document.getElementById('role-btn').innerHTML='<i class="ti ti-lock" style="font-size:13px;margin-right:4px"></i>Visitante';
+    nav='general'; renderNav(); renderMain(); return;
   }
-  document.getElementById('lock-panel').style.display = '';
-  document.getElementById('main-content').style.display = 'none';
-  document.getElementById('sub-nav').style.display = 'none';
-  document.getElementById('pwd-err').style.display = 'none';
-  document.getElementById('pwd-inp').value = '';
-  setTimeout(function(){ document.getElementById('pwd-inp').focus(); }, 60);
+  document.getElementById('lock-panel').style.display='';
+  document.getElementById('main-content').style.display='none';
+  document.getElementById('sub-nav').style.display='none';
+  document.getElementById('pwd-err').style.display='none';
+  document.getElementById('pwd-inp').value='';
+  setTimeout(function(){document.getElementById('pwd-inp').focus();},60);
 }
-function closeLock() {
-  document.getElementById('lock-panel').style.display = 'none';
-  document.getElementById('main-content').style.display = '';
-  document.getElementById('sub-nav').style.display = '';
+function closeLock(){
+  document.getElementById('lock-panel').style.display='none';
+  document.getElementById('main-content').style.display='';
+  document.getElementById('sub-nav').style.display='';
 }
-function tryUnlock() {
-  if (document.getElementById('pwd-inp').value === PWD) {
-    isAdmin = true;
-    document.getElementById('role-btn').className = 'role-btn role-admin';
-    document.getElementById('role-btn').innerHTML = '<i class="ti ti-lock-open" style="font-size:13px;margin-right:4px"></i>Admin';
+function tryUnlock(){
+  if(document.getElementById('pwd-inp').value===PWD){
+    isAdmin=true;
+    document.getElementById('role-btn').className='role-btn role-admin';
+    document.getElementById('role-btn').innerHTML='<i class="ti ti-lock-open" style="font-size:13px;margin-right:4px"></i>Admin';
     closeLock(); renderNav(); renderMain();
-  } else {
-    document.getElementById('pwd-err').style.display = '';
-  }
+  } else { document.getElementById('pwd-err').style.display=''; }
 }
 
 setFecha();
