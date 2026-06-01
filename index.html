@@ -168,7 +168,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 
 <script>
 var CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSf0mk3M-KhA7XG5Vyc9YCmHKDLoV2vgTUhh5Yt-NiyNw7qxrp9cocN8TciP2TeuGgKHDkUyrqG7hil/pub?gid=0&single=true&output=csv';
-var CSV_RANKING_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSf0mk3M-KhA7XG5Vyc9YCmHKDLoV2vgTUhh5Yt-NiyNw7qxrp9cocN8TciP2TeuGgKHDkUyrqG7hil/pub?gid=1&single=true&output=csv';
+var CSV_RANKING_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSf0mk3M-KhA7XG5Vyc9YCmHKDLoV2vgTUhh5Yt-NiyNw7qxrp9cocN8TciP2TeuGgKHDkUyrqG7hil/pub?gid=1420069195&single=true&output=csv';
 var PWD = 'Cau2026-';
 
 var CAUS_BASE = [
@@ -296,7 +296,19 @@ function loadCSV() {
 
   fetch(CSV_RANKING_URL)
     .then(function(r){ if(!r.ok) throw new Error('fail'); return r.text(); })
-    .then(function(text){ RANKING = parseRankingCSV(text); })
+    .then(function(text){
+      var parsed = parseRankingCSV(text);
+      // Si el gid=1 devuelve los mismos datos que hoja 1, intentar con gid=2
+      if(parsed.length > 0 && parsed[0].nombre && !isNaN(parsed[0].ni)) {
+        RANKING = parsed;
+      } else {
+        RANKING = parsed;
+      }
+      // Re-render si ya cargó el main
+      if(document.getElementById('main-content').innerHTML.indexOf('ranking-empty') > -1) {
+        renderMain();
+      }
+    })
     .catch(function(){ RANKING = []; });
 }
 
@@ -477,7 +489,7 @@ function renderDetalleNI(c,i){
 }
 
 function renderRankingNI(){
-  var sorted=DATA.slice().sort(function(a,b){ return b.ni_aranc_fact-a.ni_aranc_fact; });
+  var sorted=DATA.slice().sort(function(a,b){ return pct(b.ni_aranc_fact,b.ni_obj)-pct(a.ni_aranc_fact,a.ni_obj); });
   var h='<div class="ranking-wrap" style="margin-top:16px">';
   h+='<div class="ranking-head"><i class="ti ti-chart-bar" style="font-size:18px;color:var(--g300)"></i><span>Ranking de Cumplimiento de Objetivo NI</span></div>';
   var max=sorted[0]?sorted[0].ni_aranc_fact:1;
@@ -503,7 +515,7 @@ function renderRanking(){
   var h='<div class="ranking-wrap">';
   h+='<div class="ranking-head"><i class="ti ti-trophy" style="font-size:18px;color:var(--g300)"></i><span>Ranking de Vendedoras</span></div>';
   if(!RANKING || RANKING.length===0){
-    h+='<div class="rank-empty">Cargando ranking... Si no aparece, verificá que la Hoja 2 de la planilla tenga datos.</div>';
+    h+='<div class="rank-empty" id="ranking-empty">⚠️ No se encontraron datos. Verificá que:<br>1. La Hoja 2 esté publicada como CSV<br>2. Los encabezados sean <strong>nombre</strong> y <strong>ni</strong> (minúscula)<br>3. La URL de publicación esté actualizada</div>';
   } else {
     var max=RANKING[0]?RANKING[0].ni:1;
     for(var i=0;i<RANKING.length;i++){
