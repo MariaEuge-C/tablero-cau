@@ -231,10 +231,14 @@ function parseRankingCSV(text) {
   var lines = text.split('\n').filter(function(l){ return l.trim(); });
   if (lines.length < 2) return [];
   var sep = (lines[0].indexOf('\t') > -1) ? '\t' : ',';
+  // detectar índice de columnas (case-insensitive)
+  var hdrs = lines[0].split(sep).map(function(h){ return h.trim().toLowerCase().replace(/\r/g,''); });
+  var idxNombre = hdrs.indexOf('nombre'); if(idxNombre<0) idxNombre=0;
+  var idxNi = hdrs.indexOf('ni'); if(idxNi<0) idxNi=1;
   var result = [];
   for (var i = 1; i < lines.length; i++) {
     var vals = lines[i].split(sep).map(function(v){ return v.trim().replace(/\r/g,'').replace(/"/g,''); });
-    if (vals[0]) result.push({ nombre: vals[0], ni: parseNum(vals[1]) });
+    if (vals[0]) var vnom=(vals[idxNombre]||'').trim().replace(/\r/g,''); var vni=parseNum((vals[idxNi]||'0').replace(/\r/g,'')); if(vnom) result.push({ nombre: vnom, ni: vni });
   }
   result.sort(function(a,b){ return b.ni - a.ni; });
   return result;
@@ -276,6 +280,8 @@ function loadCSV() {
           sa_tp4_pct:parseNum(row.sa_tp4_pct), sa_tp4_cant:parseNum(row.sa_tp4_cant), sa_tp4_alerta:row.sa_tp4_alerta||'', sa_tp4_obj:parseNum(row.sa_tp4_obj), sa_tp4_cumpl:parseNum(row.sa_tp4_cumpl), sa_tp4_falt:parseNum(row.sa_tp4_falt),
           sa_rec_pct:parseNum(row.sa_rec_pct), sa_rec_cant:parseNum(row.sa_rec_cant), sa_rec_alerta:row.sa_rec_alerta||'', sa_rec_obj:parseNum(row.sa_rec_obj), sa_rec_cumpl:parseNum(row.sa_rec_cumpl), sa_rec_falt:parseNum(row.sa_rec_falt),
           sa_int_pct:parseNum(row.sa_int_pct), sa_int_cant:parseNum(row.sa_int_cant), sa_int_alerta:row.sa_int_alerta||'', sa_int_obj:parseNum(row.sa_int_obj), sa_int_cumpl:parseNum(row.sa_int_cumpl), sa_int_falt:parseNum(row.sa_int_falt),
+          sa_p1_pct:parseNum(row.sa_p1_pct), sa_p1_cant:parseNum(row.sa_p1_cant), sa_p1_alerta:row.sa_p1_alerta||'', sa_p1_obj:parseNum(row.sa_p1_obj), sa_p1_cumpl:parseNum(row.sa_p1_cumpl), sa_p1_falt:parseNum(row.sa_p1_falt),
+          sa_p2_pct:parseNum(row.sa_p2_pct), sa_p2_cant:parseNum(row.sa_p2_cant), sa_p2_alerta:row.sa_p2_alerta||'', sa_p2_obj:parseNum(row.sa_p2_obj), sa_p2_cumpl:parseNum(row.sa_p2_cumpl), sa_p2_falt:parseNum(row.sa_p2_falt),
           alumnos_ed:parseNum(row.alumnos_ed), alumnos_edh:parseNum(row.alumnos_edh), comision_pers:parseNum(row.comision_pers),
           sa_cma:parseNum(row.sa_cma), sa_aprobado:parseNum(row.sa_aprobado), sa_regular:parseNum(row.sa_regular),
           sa_lib_nota:parseNum(row.sa_lib_nota), sa_libre:parseNum(row.sa_libre), sa_cursando:parseNum(row.sa_cursando),
@@ -337,7 +343,7 @@ function renderMain(){
     '</div>';
   } else if(nav==='ni'){
     html+=renderFilterBar();
-    if(filtro==='global'){ html+=renderGlobalNI(); html+=renderRanking(); }
+    if(filtro==='global'){ html+=renderGlobalNI(); html+=renderRanking(); html+=renderRankingNI(); }
     else{ var c=findC(filtro); if(c) html+=renderSingleNI(c)+renderDetalleNI(c,DATA.indexOf(c)); }
   } else if(nav==='pers'){
     html+=renderFilterBar();
@@ -467,6 +473,29 @@ function renderDetalleNI(c,i){
   h+=fieldCalc('Cumplimiento Lead Genuino',c.ni_cumpl_lead ? c.ni_cumpl_lead+'%' : '0%');
   h+='</div>';
   h+=totalBarHtml(c,i);
+  return h;
+}
+
+function renderRankingNI(){
+  var sorted=DATA.slice().sort(function(a,b){ return b.ni_aranc_fact-a.ni_aranc_fact; });
+  var h='<div class="ranking-wrap" style="margin-top:16px">';
+  h+='<div class="ranking-head"><i class="ti ti-chart-bar" style="font-size:18px;color:var(--g300)"></i><span>Ranking de Cumplimiento de Objetivo NI</span></div>';
+  var max=sorted[0]?sorted[0].ni_aranc_fact:1;
+  for(var i=0;i<sorted.length;i++){
+    var c=sorted[i];
+    var pos=i+1;
+    var posCls=pos===1?'gold':pos===2?'silver':pos===3?'bronze':'';
+    var nip=pct(c.ni_aranc_fact,c.ni_obj);
+    var col=nip>=100?'var(--g500)':nip>=80?'#BA7517':'#C0392B';
+    var barW=max>0?Math.round(c.ni_aranc_fact/max*100):0;
+    h+='<div class="ranking-item">';
+    h+='<div class="rank-pos '+posCls+'">'+(i+1)+'</div>';
+    h+='<div class="cname" style="flex:1"><span class="ccode">'+c.code+'</span><span style="font-size:14px;font-weight:700;color:var(--text)">'+c.nombre+'</span></div>';
+    h+='<div class="rank-bar-wrap"><div class="rank-bar"><div class="rank-bar-fill" style="width:'+barW+'%;background:'+col+'"></div></div></div>';
+    h+='<div class="rank-val" style="color:'+col+'">'+c.ni_aranc_fact+'</div>';
+    h+='</div>';
+  }
+  h+='</div>';
   return h;
 }
 
@@ -601,6 +630,11 @@ function renderDetallePers(c,i){
   h+='</div>';
   h+='<div class="prog-wrap"><div class="prog-label"><span>% de Persistencia 1ª Cohorte</span><span>'+c.r1c_pers+'%</span></div>';
   h+='<div class="pbg"><div class="pf '+pclr(c.r1c_pers)+'" style="width:'+Math.min(c.r1c_pers,100)+'%"></div></div></div>';
+  h+=totalBarHtml(c,i);
+  h+='<div class="kpi-strip" style="margin-top:10px">';
+  h+=kpi('kpi-md','Estudiantes ED',c.alumnos_ed||0,'');
+  h+=kpi('kpi-lt','Estudiantes EDH',c.alumnos_edh||0,'');
+  h+='</div>';
   h+='<div class="divh"></div>';
   h+=renderSeguimientoAcademico(c,i);
   return h;
@@ -628,7 +662,7 @@ function renderSeguimientoAcademico(c,i){
   var cards=[
     {label:"Aprobado",   k:"sa_aprobado", col:"#1D9E75",bg:"#E1F5EE"},
     {label:"Regular",    k:"sa_regular",  col:"#BA7517",bg:"#FAEEDA"},
-    {label:"Lib. por nota",k:"sa_lib_nota",col:"#E07020",bg:"#FDECD5"},
+    {label:"Libre por nota",k:"sa_lib_nota",col:"#E07020",bg:"#FDECD5"},
     {label:"Libre",      k:"sa_libre",    col:"#C0392B",bg:"#FDECEA"},
     {label:"Cursando",   k:"sa_cursando", col:"#185FA5",bg:"#E6F1FB"},
   ];
@@ -646,6 +680,8 @@ function renderSeguimientoAcademico(c,i){
     {label:"TP 2",pk:"sa_tp2_pct",ck2:"sa_tp2_cant",ak:"sa_tp2_alerta",ok:"sa_tp2_obj",ck:"sa_tp2_cumpl",fk:"sa_tp2_falt"},
     {label:"TP 3",pk:"sa_tp3_pct",ck2:"sa_tp3_cant",ak:"sa_tp3_alerta",ok:"sa_tp3_obj",ck:"sa_tp3_cumpl",fk:"sa_tp3_falt"},
     {label:"TP 4",pk:"sa_tp4_pct",ck2:"sa_tp4_cant",ak:"sa_tp4_alerta",ok:"sa_tp4_obj",ck:"sa_tp4_cumpl",fk:"sa_tp4_falt"},
+    {label:"Parcial 1",pk:"sa_p1_pct",ck2:"sa_p1_cant",ak:"sa_p1_alerta",ok:"sa_p1_obj",ck:"sa_p1_cumpl",fk:"sa_p1_falt"},
+    {label:"Parcial 2",pk:"sa_p2_pct",ck2:"sa_p2_cant",ak:"sa_p2_alerta",ok:"sa_p2_obj",ck:"sa_p2_cumpl",fk:"sa_p2_falt"},
     {label:"Recuperatorios",pk:"sa_rec_pct",ck2:"sa_rec_cant",ak:"sa_rec_alerta",ok:"sa_rec_obj",ck:"sa_rec_cumpl",fk:"sa_rec_falt"},
     {label:"Integradores",pk:"sa_int_pct",ck2:"sa_int_cant",ak:"sa_int_alerta",ok:"sa_int_obj",ck:"sa_int_cumpl",fk:"sa_int_falt"},
   ];
@@ -734,6 +770,15 @@ function renderDetalleReinsc(c,i){
   h+='</div>';
   h+='<div class="prog-wrap"><div class="prog-label"><span>% de Persistencia 1ª Cohorte</span><span>'+c.r1c_pers+'%</span></div>';
   h+='<div class="pbg"><div class="pf '+pclr(c.r1c_pers)+'" style="width:'+Math.min(c.r1c_pers,100)+'%"></div></div></div>';
+  h+='<div class="divh"></div>';
+  h+='<div style="background:linear-gradient(135deg,var(--g800),var(--g700));border-radius:var(--r);padding:16px 20px;display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;box-shadow:var(--shadow)">';
+  h+='<span style="font-size:13px;font-weight:700;color:var(--g300);text-transform:uppercase;letter-spacing:.05em"><i class="ti ti-users" style="font-size:15px;margin-right:6px"></i>Total Estudiantes (RI Neta + NI)</span>';
+  h+='<span style="font-size:32px;font-weight:700;color:white;font-family:DM Mono,monospace">'+totalFinal(c)+'</span>';
+  h+='</div>';
+  h+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">';
+  h+=kpi('kpi-md','Estudiantes ED',c.alumnos_ed||0,'');
+  h+=kpi('kpi-lt','Estudiantes EDH',c.alumnos_edh||0,'');
+  h+='</div>';
   return h;
 }
 
