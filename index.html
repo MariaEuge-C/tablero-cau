@@ -270,12 +270,12 @@ function loadCSV() {
           ni_conv_lead:parseNum(row.ni_conv_lead),
           ni_obj_lead:parseNum(row.ni_obj_lead),
           ni_cumpl_lead:parseNum(row.ni_cumpl_lead),
-          sa_tp1_pct:parseNum(row.sa_tp1_pct), sa_tp1_alerta:row.sa_tp1_alerta||'', sa_tp1_obj:parseNum(row.sa_tp1_obj), sa_tp1_cumpl:parseNum(row.sa_tp1_cumpl), sa_tp1_falt:parseNum(row.sa_tp1_falt),
-          sa_tp2_pct:parseNum(row.sa_tp2_pct), sa_tp2_alerta:row.sa_tp2_alerta||'', sa_tp2_obj:parseNum(row.sa_tp2_obj), sa_tp2_cumpl:parseNum(row.sa_tp2_cumpl), sa_tp2_falt:parseNum(row.sa_tp2_falt),
-          sa_tp3_pct:parseNum(row.sa_tp3_pct), sa_tp3_alerta:row.sa_tp3_alerta||'', sa_tp3_obj:parseNum(row.sa_tp3_obj), sa_tp3_cumpl:parseNum(row.sa_tp3_cumpl), sa_tp3_falt:parseNum(row.sa_tp3_falt),
-          sa_tp4_pct:parseNum(row.sa_tp4_pct), sa_tp4_alerta:row.sa_tp4_alerta||'', sa_tp4_obj:parseNum(row.sa_tp4_obj), sa_tp4_cumpl:parseNum(row.sa_tp4_cumpl), sa_tp4_falt:parseNum(row.sa_tp4_falt),
-          sa_rec_pct:parseNum(row.sa_rec_pct), sa_rec_alerta:row.sa_rec_alerta||'', sa_rec_obj:parseNum(row.sa_rec_obj), sa_rec_cumpl:parseNum(row.sa_rec_cumpl), sa_rec_falt:parseNum(row.sa_rec_falt),
-          sa_int_pct:parseNum(row.sa_int_pct), sa_int_alerta:row.sa_int_alerta||'', sa_int_obj:parseNum(row.sa_int_obj), sa_int_cumpl:parseNum(row.sa_int_cumpl), sa_int_falt:parseNum(row.sa_int_falt),
+          sa_tp1_pct:parseNum(row.sa_tp1_pct), sa_tp1_cant:parseNum(row.sa_tp1_cant), sa_tp1_alerta:row.sa_tp1_alerta||'', sa_tp1_obj:parseNum(row.sa_tp1_obj), sa_tp1_cumpl:parseNum(row.sa_tp1_cumpl), sa_tp1_falt:parseNum(row.sa_tp1_falt),
+          sa_tp2_pct:parseNum(row.sa_tp2_pct), sa_tp2_cant:parseNum(row.sa_tp2_cant), sa_tp2_alerta:row.sa_tp2_alerta||'', sa_tp2_obj:parseNum(row.sa_tp2_obj), sa_tp2_cumpl:parseNum(row.sa_tp2_cumpl), sa_tp2_falt:parseNum(row.sa_tp2_falt),
+          sa_tp3_pct:parseNum(row.sa_tp3_pct), sa_tp3_cant:parseNum(row.sa_tp3_cant), sa_tp3_alerta:row.sa_tp3_alerta||'', sa_tp3_obj:parseNum(row.sa_tp3_obj), sa_tp3_cumpl:parseNum(row.sa_tp3_cumpl), sa_tp3_falt:parseNum(row.sa_tp3_falt),
+          sa_tp4_pct:parseNum(row.sa_tp4_pct), sa_tp4_cant:parseNum(row.sa_tp4_cant), sa_tp4_alerta:row.sa_tp4_alerta||'', sa_tp4_obj:parseNum(row.sa_tp4_obj), sa_tp4_cumpl:parseNum(row.sa_tp4_cumpl), sa_tp4_falt:parseNum(row.sa_tp4_falt),
+          sa_rec_pct:parseNum(row.sa_rec_pct), sa_rec_cant:parseNum(row.sa_rec_cant), sa_rec_alerta:row.sa_rec_alerta||'', sa_rec_obj:parseNum(row.sa_rec_obj), sa_rec_cumpl:parseNum(row.sa_rec_cumpl), sa_rec_falt:parseNum(row.sa_rec_falt),
+          sa_int_pct:parseNum(row.sa_int_pct), sa_int_cant:parseNum(row.sa_int_cant), sa_int_alerta:row.sa_int_alerta||'', sa_int_obj:parseNum(row.sa_int_obj), sa_int_cumpl:parseNum(row.sa_int_cumpl), sa_int_falt:parseNum(row.sa_int_falt),
           alumnos_ed:parseNum(row.alumnos_ed), alumnos_edh:parseNum(row.alumnos_edh), comision_pers:parseNum(row.comision_pers),
           sa_cma:parseNum(row.sa_cma), sa_aprobado:parseNum(row.sa_aprobado), sa_regular:parseNum(row.sa_regular),
           sa_lib_nota:parseNum(row.sa_lib_nota), sa_libre:parseNum(row.sa_libre), sa_cursando:parseNum(row.sa_cursando),
@@ -623,7 +623,7 @@ function renderSeguimientoAcademico(c,i){
   h+='<div style="background:var(--g700);border-radius:var(--r);padding:16px 18px;display:flex;flex-direction:column;justify-content:center">';
   h+='<div style="font-size:11px;font-weight:700;color:var(--g300);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">CMA</div>';
   h+='<div style="font-size:36px;font-weight:700;color:white;font-family:DM Mono,monospace">'+cma+'%</div>';
-  h+='<div style="font-size:11px;color:var(--g300);margin-top:4px;font-weight:500">Cumplimiento Medio Académico</div>';
+  h+='<div style="font-size:11px;color:var(--g300);margin-top:4px;font-weight:500">Coeficiente de Materias Aprobadas</div>';
   h+='</div>';
   var cards=[
     {label:"Aprobado",   k:"sa_aprobado", col:"#1D9E75",bg:"#E1F5EE"},
@@ -642,12 +642,12 @@ function renderSeguimientoAcademico(c,i){
   }
   h+='</div>';
   var tps=[
-    {label:"TP 1",pk:"sa_tp1_pct",ak:"sa_tp1_alerta",ok:"sa_tp1_obj",ck:"sa_tp1_cumpl",fk:"sa_tp1_falt"},
-    {label:"TP 2",pk:"sa_tp2_pct",ak:"sa_tp2_alerta",ok:"sa_tp2_obj",ck:"sa_tp2_cumpl",fk:"sa_tp2_falt"},
-    {label:"TP 3",pk:"sa_tp3_pct",ak:"sa_tp3_alerta",ok:"sa_tp3_obj",ck:"sa_tp3_cumpl",fk:"sa_tp3_falt"},
-    {label:"TP 4",pk:"sa_tp4_pct",ak:"sa_tp4_alerta",ok:"sa_tp4_obj",ck:"sa_tp4_cumpl",fk:"sa_tp4_falt"},
-    {label:"Recuperatorios",pk:"sa_rec_pct",ak:"sa_rec_alerta",ok:"sa_rec_obj",ck:"sa_rec_cumpl",fk:"sa_rec_falt"},
-    {label:"Integradores",pk:"sa_int_pct",ak:"sa_int_alerta",ok:"sa_int_obj",ck:"sa_int_cumpl",fk:"sa_int_falt"},
+    {label:"TP 1",pk:"sa_tp1_pct",ck2:"sa_tp1_cant",ak:"sa_tp1_alerta",ok:"sa_tp1_obj",ck:"sa_tp1_cumpl",fk:"sa_tp1_falt"},
+    {label:"TP 2",pk:"sa_tp2_pct",ck2:"sa_tp2_cant",ak:"sa_tp2_alerta",ok:"sa_tp2_obj",ck:"sa_tp2_cumpl",fk:"sa_tp2_falt"},
+    {label:"TP 3",pk:"sa_tp3_pct",ck2:"sa_tp3_cant",ak:"sa_tp3_alerta",ok:"sa_tp3_obj",ck:"sa_tp3_cumpl",fk:"sa_tp3_falt"},
+    {label:"TP 4",pk:"sa_tp4_pct",ck2:"sa_tp4_cant",ak:"sa_tp4_alerta",ok:"sa_tp4_obj",ck:"sa_tp4_cumpl",fk:"sa_tp4_falt"},
+    {label:"Recuperatorios",pk:"sa_rec_pct",ck2:"sa_rec_cant",ak:"sa_rec_alerta",ok:"sa_rec_obj",ck:"sa_rec_cumpl",fk:"sa_rec_falt"},
+    {label:"Integradores",pk:"sa_int_pct",ck2:"sa_int_cant",ak:"sa_int_alerta",ok:"sa_int_obj",ck:"sa_int_cumpl",fk:"sa_int_falt"},
   ];
   for(var t=0;t<tps.length;t++){
     var tp=tps[t];
@@ -657,11 +657,12 @@ function renderSeguimientoAcademico(c,i){
     var cumplVal=parseFloat(c[tp.ck])||0;
     h+='<div style="background:white;border:1px solid var(--border);border-radius:var(--r-sm);padding:12px 14px;margin-bottom:10px">';
     h+='<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">';
-    h+='<span style="font-size:12px;font-weight:700;color:var(--g700);text-transform:uppercase;letter-spacing:.05em">% '+tp.label+'</span>';
+    h+='<span style="font-size:12px;font-weight:700;color:var(--g700);text-transform:uppercase;letter-spacing:.05em">'+tp.label+'</span>';
     h+='<span style="font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;background:'+col+'33;color:'+col+'">'+alertaLabel+'</span>';
     h+='</div>';
-    h+='<div class="fgrid" style="grid-template-columns:repeat(4,1fr);margin-bottom:8px">';
-    h+=field("% "+tp.label,(c[tp.pk]||0)+"%");
+    h+='<div class="fgrid" style="grid-template-columns:repeat(5,1fr);margin-bottom:8px">';
+    h+=field("Cantidad de Alumnos Materia",(c[tp.pk]||0));
+    h+=field(tp.label,(c[tp.ck2]||0));
     h+=field("% Objetivo Actual",(c[tp.ok]||0)+"%");
     h+=fieldCalc("% Cumplimiento Objetivo",(c[tp.ck]||0)+"%");
     h+=field("Faltantes para Objetivo",c[tp.fk]||0);
