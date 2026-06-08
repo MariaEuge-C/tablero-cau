@@ -202,8 +202,9 @@ var filtro = 'global';
 var csvLoaded = false;
 
 function parseNum(v) {
-  if (!v) return 0;
-  return parseFloat(String(v).replace(',','.')) || 0;
+  if (!v || v === '-' || v === '' || v === ' ') return 0;
+  var n = parseFloat(String(v).trim().replace(',','.'));
+  return isNaN(n) ? 0 : n;
 }
 
 function parseCSV(text) {
@@ -482,7 +483,7 @@ function renderDetalleNI(c,i){
   h+='<div class="sec-head"><i class="ti ti-target"></i>Indicadores de Captación</div><div class="fgrid">';
   h+=field('Conversión Lead vs NI',c.ni_conv_lead ? c.ni_conv_lead+'%' : '0%');
   h+=field('Objetivo Lead Genuino',c.ni_obj_lead);
-  h+=fieldCalc('Cumplimiento Lead Genuino',c.ni_cumpl_lead ? c.ni_cumpl_lead+'%' : '0%');
+  h+=fieldCalc('Cumplimiento Lead Genuino',pct(c.ni_cumpl_lead,c.ni_obj_lead)+'%');
   h+='</div>';
   h+=totalBarHtml(c,i);
   return h;
@@ -570,7 +571,7 @@ function renderListaPers(){
     h+='<div class="rank-pos '+posCls+'">'+pos+'</div>';
     h+='<div class="cname" style="flex:1"><span class="ccode">'+c.code+'</span><span style="font-size:14px;font-weight:700;color:var(--text)">'+c.nombre+'</span></div>';
     h+='<div style="display:flex;gap:8px;align-items:center">';
-    h+='<span style="font-size:11px;font-weight:700;padding:4px 10px;border-radius:20px;background:'+rpcol+'22;color:'+rpcol+';white-space:nowrap">Pers. RN '+rp+'%</span>';
+    h+='<span style="font-size:11px;font-weight:700;padding:4px 10px;border-radius:20px;background:'+rpcol+'22;color:'+rpcol+';white-space:nowrap">Pers. Neta '+rp+'%</span>';
     h+='<span style="font-size:11px;font-weight:700;padding:4px 10px;border-radius:20px;background:'+r1pcol+'22;color:'+r1pcol+';white-space:nowrap">Pers. 1C '+r1p+'%</span>';
     h+='<span style="font-size:11px;font-weight:700;padding:4px 10px;border-radius:20px;background:'+cmacol+'22;color:'+cmacol+';white-space:nowrap">CMA '+cma+'%</span>';
     h+='</div>';
