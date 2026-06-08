@@ -203,7 +203,7 @@ var csvLoaded = false;
 
 function parseNum(v) {
   if (!v || v === '-' || v === '' || v === ' ') return 0;
-  var n = parseFloat(String(v).trim().replace(',','.'));
+  var n = parseFloat(String(v).trim().replace(',','.').replace('%',''));
   return isNaN(n) ? 0 : n;
 }
 
